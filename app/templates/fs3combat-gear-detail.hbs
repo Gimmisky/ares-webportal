@@ -1,8 +1,6 @@
 {{title model.name}}
 <h1>{{model.name}}</h1>
 
-<div class="ansi">
-    
 <table class="table table-striped">
     
 
@@ -13,6 +11,21 @@
 </tr>
 {{/each}}
 
-</table>
+{{#if model.specials}}
+<h3>Available Specials</h3>
 
-</div>
+
+{{#each model.specials as |value|}}
+<tr>
+    <td><b>{{value.title}}</b></td>
+    <td>
+      
+      {{#each value.effects as |effect|}}
+      {{effect}}<br>
+      {{/each}}
+    </td>
+</tr>
+{{/each}}
+{{/if}}
+
+</table>

@@ -1,4 +1,5 @@
 import Component from '@ember/component';
+import { set, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
 import AuthenticatedController from 'ares-webportal/mixins/authenticated-controller';
 
@@ -6,32 +7,64 @@ export default Component.extend(AuthenticatedController, {
     scenePose: '',
     rollString: null,
     confirmDeleteScenePose: false,
-    selectSkillRoll: false,
+    confirmDeleteScene: false,
+    confirmReportScene: false,
     selectLocation: false,
+    managePoseOrder: false,
+    characterCard: false,
     newLocation: null,
+    reportReason: null,
+    poseType: null,
+    poseChar: null,
     gameApi: service(),
     flashMessages: service(),
     gameSocket: service(),
     session: service(),
-  
-    rollEnabled: function() {
-      return this.get('abilities').length > 0;
-    }.property('abilities'),
-  
-    scenePoses: function() {
-        return this.get('scene.poses').map(p => Ember.Object.create(p));  
-    }.property('scene.poses.@each.pose'),
+
+    init: function() {
+      this._super(...arguments);
+      this.set('poseType', { title: 'Pose', id: 'pose' });
+    },
       
+    didInsertElement: function() {
+      this.set('poseChar', this.get('scene.poseable_chars')[0]);
+    },
+    
+    poseTypes: computed(function() {
+      return [
+        { title: 'Pose', id: 'pose' },
+        { title: 'GM Emit', id: 'gm' },
+        { title: 'Scene Set', id: 'setpose' }
+      ];
+    }),
+    
+    poseOrderTypes: computed(function() {
+      return [ '3-per', 'normal' ];
+    }),
+    
+    characterCardInfo: computed('characterCard', function() {
+      let participant = this.get('scene.participants').find(p => p.name == this.characterCard);
+      return participant ? participant.char_card : {};
+    }),
+  
+    txtExtraInstalled: computed(function() {
+      return this.get('scene.extras_installed').some(e => e == 'txt');
+    }),
+    
+    cookiesExtraInstalled: computed(function() {
+      return this.get('scene.extras_installed').some(e => e == 'cookies');
+    }),
+    
     actions: { 
       locationSelected(loc) {
           this.set('newLocation', loc);  
       },
       changeLocation() {
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           
-          let newLoc = this.get('newLocation');
+          let newLoc = this.newLocation;
           if (!newLoc) {
-              this.get('flashMessages').danger("You haven't selected a location.");
+              this.flashMessages.danger("You haven't selected a location.");
               return;
           }
           this.set('selectLocation', false);
@@ -46,25 +79,14 @@ export default Component.extend(AuthenticatedController, {
           });
       },
       
-      cookies() {
-          let api = this.get('gameApi');
-          api.requestOne('sceneCookies', { id: this.get('scene.id') }, null)
-          .then( (response) => {
-              if (response.error) {
-                  return;
-              }
-              this.get('flashMessages').success('You give cookies to the scene participants.');
-          });
-      },
-      
       editScenePose(scenePose) { 
-          scenePose.set('editActive', true);
+          set(scenePose, 'editActive', true);
       },
       cancelScenePoseEdit(scenePose) {
-          scenePose.set('editActive', false);
+          set(scenePose, 'editActive', false);
       },
       deleteScenePose() {
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           let poseId = this.get('confirmDeleteScenePose.id');
           this.set('confirmDeleteScenePose', false);
 
@@ -79,37 +101,52 @@ export default Component.extend(AuthenticatedController, {
               }
           });
       },
+      deleteScene() {
+        let api = this.gameApi;
+        this.set('confirmDeleteScene', false);
+
+        api.requestOne('deleteScene', { id: this.get('scene.id') })
+        .then( (response) => {
+            if (response.error) {
+                return;
+            }
+            this.flashMessages.success('The scene has been deleted.');
+            this.sendAction('refresh'); 
+        });
+      },
       saveScenePose(scenePose, notify) {
-          let pose = scenePose.get('raw_pose');
+          let pose = scenePose.raw_pose;
           if (pose.length === 0) {
-              this.get('flashMessages').danger("You haven't entered anything.");
+              this.flashMessages.danger("You haven't entered anything.");
               return;
           }
-          scenePose.set('editActive', false);
-          scenePose.set('pose', pose);
+          set(scenePose, 'editActive', false);
+          set(scenePose, 'pose', pose);
 
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           api.requestOne('editScenePose', { scene_id: this.get('scene.id'),
               pose_id: scenePose.id, pose: pose, notify: notify })
           .then( (response) => {
               if (response.error) {
                   return;
               }
-              scenePose.set('pose', response.pose);
+              set(scenePose, 'pose', response.pose);
           });
           this.set('scenePose', '');
       },
       
       addPose(poseType) {
-          let pose = this.get('scenePose');
+          let pose = this.scenePose;
           if (pose.length === 0) {
-              this.get('flashMessages').danger("You haven't entered anything.");
+              this.flashMessages.danger("You haven't entered anything.");
               return;
           }
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           this.set('scenePose', '');
           api.requestOne('addScenePose', { id: this.get('scene.id'),
-              pose: pose, pose_type: poseType })
+              pose: pose, 
+              pose_type: poseType,
+              pose_char: this.get('poseChar.id') })
           .then( (response) => {
               if (response.error) {
                   return;
@@ -118,33 +155,10 @@ export default Component.extend(AuthenticatedController, {
           });
       },
       
-      addSceneRoll() {
-          let api = this.get('gameApi');
-          
-          // Needed because the onChange event doesn't get triggered when the list is 
-          // first loaded, so the roll string is empty.
-          let rollString = this.get('rollString') || this.get('abilities')[0];
-          
-          if (!rollString) {
-              this.get('flashMessages').danger("You haven't selected an ability to roll.");
-              return;
-          }
-          this.set('selectSkillRoll', false);
-          this.set('rollString', null);
-
-          api.requestOne('addSceneRoll', { scene_id: this.get('scene.id'),
-              roll_string: rollString })
-          .then( (response) => {
-              if (response.error) {
-                  return;
-              }
-          });
-      },
-      
       changeSceneStatus(status) {
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           if (status === 'share') {
-              this.get('gameSocket').set('sceneCallback', null);
+            this.gameSocket.removeCallback('new_scene_activity');
           }
           this.set('scene.reload_required', true);
           
@@ -155,21 +169,21 @@ export default Component.extend(AuthenticatedController, {
                   return;
               }
               if (status === 'share') {
-                  this.get('flashMessages').success('The scene has been shared.');
+                  this.flashMessages.success('The scene has been shared.');
               }
               else if (status === 'stop') {
-                  this.get('flashMessages').success('The scene has been stopped.');
+                  this.flashMessages.success('The scene has been stopped.');
                   this.sendAction('refresh'); 
               }
               else if (status === 'restart') {
-                  this.get('flashMessages').success('The scene has been restarted.');
+                  this.flashMessages.success('The scene has been restarted.');
                   this.sendAction('refresh'); 
               }
           });
       },
       
       watchScene(option) {
-          let api = this.get('gameApi');
+          let api = this.gameApi;
           let command = option ? 'watchScene' : 'unwatchScene';
           api.requestOne(command, { id: this.get('scene.id') }, null)
           .then( (response) => {
@@ -177,8 +191,8 @@ export default Component.extend(AuthenticatedController, {
                   return;
               }
               let message = option ? 'now watching' : 'no longer watching';
-              this.get('flashMessages').success(`You are ${message} the scene.`);
-              this.get('scene').set('is_watching', option);
+              this.flashMessages.success(`You are ${message} the scene.`);
+              this.scene.set('is_watching', option);
               
               if (option) {
                 this.sendAction('refresh'); 
@@ -190,12 +204,56 @@ export default Component.extend(AuthenticatedController, {
         this.sendAction('scrollScene');
       },
       
-      
       pauseScroll() {
         this.sendAction('setScroll', false);
       },
       unpauseScroll() {
         this.sendAction('setScroll', true);
-      }
+      },
+      
+      poseTypeChanged(newType) {
+        this.set('poseType', newType);
+      },
+      
+      poseCharChanged(newChar) { 
+        this.set('poseChar', newChar);
+      },
+      
+      switchPoseOrderType(newType) {
+        let api = this.gameApi;
+        api.requestOne('switchPoseOrder', { id: this.get('scene.id'), type: newType }, null)
+        .then( (response) => {
+          this.set('managePoseOrder', false);
+            if (response.error) {
+                return;
+            }
+            this.set('scene.pose_order_type', newType);
+        });
+      },
+      
+      dropPoseOrder(name) {
+        let api = this.gameApi;
+        api.requestOne('dropPoseOrder', { id: this.get('scene.id'), name: name }, null)
+        .then( (response) => {
+            this.set('managePoseOrder', false);
+            if (response.error) {
+                return;
+            }
+        });
+      },
+      
+      reportScene() {
+        let api = this.gameApi;
+        this.set('confirmReportScene', false);
+
+        api.requestOne('reportScene', { id: this.get('scene.id'), reason: this.get('reportReason') })
+        .then( (response) => {
+            if (response.error) {
+                return;
+            }
+            this.set('reportReason', null);
+            this.flashMessages.success('Thank you.  The scene has been reported.');
+        });
+      },
     }
 });

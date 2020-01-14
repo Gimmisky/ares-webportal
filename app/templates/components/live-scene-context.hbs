@@ -3,20 +3,35 @@
         {{scene.location.name}}
     </div>
     <div class="panel-body">
+    
+        {{#if scene.summary}}
+        <p> {{{ansi-format text=scene.summary}}} </p>
+        <hr>
+        {{/if}}        
+
+        {{#if scene.content_warning}}
+        <div class="alert alert-danger"><b>Content Warning:</b> {{scene.content_warning}}</div>
+        {{/if}}
+    
         {{#if scene.location.description}}
         {{{ansi-format text=scene.location.description}}}
         {{/if}}
     
+        {{#each scene.location.details as |detail|}}
+        <p><i>{{detail.name}}:</i> {{{ansi-format text=detail.desc}}}</p>
+        {{/each}}
+        
         {{#if scene.location.scene_set}}
         <div class="scene-set-pose">
           {{{ansi-format text=scene.location.scene_set}}}
         </div>
         {{/if}}
-
+        
         <div class="icon-row">
         {{#each scene.participants as |who|}}
-          {{char-icon-inline char=who icon-class=(if who.online '' 'faded')}}
+          {{char-icon-inline char=who}}
         {{/each}}
         </div>
+        
     </div>
 </div>

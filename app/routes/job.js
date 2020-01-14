@@ -1,3 +1,4 @@
+import EmberObject from '@ember/object';
 import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import DefaultRoute from 'ares-webportal/mixins/default-route';
@@ -8,16 +9,26 @@ export default Route.extend(DefaultRoute, ReloadableRoute, {
     gameApi: service(),
     gameSocket: service(),
     
+    activate: function() {
+        this.controllerFor('job').setupCallback();
+    },
+
+    deactivate: function() {
+      this.gameSocket.removeCallback('job_update');
+    },
+    
     model: function(params) {
-        let api = this.get('gameApi');
+        let api = this.gameApi;
 
         return RSVP.hash({
              job:  api.requestOne('job', { id: params['id']  }),
-             options: api.requestOne('jobOptions')
+             abilities:  api.request('charAbilities', { id: this.get('session.data.authenticated.id') }),
+             options: api.requestOne('jobOptions'),
+             characters: api.requestMany('characters', { select: 'all' })
            })
            .then((model) => {
-             this.get('gameSocket').updateJobsBadge(model.job.unread_jobs_count);
-             return Ember.Object.create(model);
+             this.gameSocket.updateJobsBadge(model.job.unread_jobs_count);
+             return EmberObject.create(model);
            });
            
     }    

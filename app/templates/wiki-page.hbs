@@ -1,14 +1,48 @@
 {{title model.heading}}
+<a name="top"></a>
 <h1>{{model.heading}}</h1>
+
+<div class="row wiki-breadcrumbs">
+    <div class="col col-xs-10">
+      <span class="wiki-breadcrumb">
+        {{#each model.breadcrumbs as |crumb index|}}
+          {{#if (not (eq index 0) ) }}
+          <i class="fas fa-angle-double-right" aria-hidden="true"></i>
+          {{/if}}
+          {{#if crumb.url}}
+          <a href="/wiki/{{crumb.url}}">{{crumb.title}}</a> 
+          {{else}}
+          {{crumb.title}}
+          {{/if}}
+        {{/each}}
+      </span>
+    </div>
+    
+    <div class="col col-xs-2">
+        <a href="#bottom"><i class="fas fa-chevron-circle-down" aria-hidden="true"></i> Jump to Bottom</a>
+    </div>
+</div>
+
 
 {{{ansi-format text=model.text}}}
 
-<hr/>
+<hr>
 
+<div class="row">
+    <div class="col col-xs-12">
+      <div class="pull-right">
+        <a name="bottom"></a>
+        <p><a href="#top"><i class="fas fa-chevron-circle-up"></i> Jump to Top</a></p>
+      </div>
+    </div>
+</div>
+
+{{#if model.tags}}
 <b>Tags:</b>  
     {{#each model.tags as |tag|}}
     {{#link-to 'wiki-tag' tag}}{{tag}}{{/link-to}}
     {{/each}}
+{{/if}}
 
 <div class="row">
     <div class="col col-xs-12">
@@ -22,7 +56,7 @@
    {{#if model.can_edit}}
         {{#link-to 'wiki-edit' model.name class="btn btn-primary"}}Edit{{/link-to}} 
    {{else}}
-      <button class="btn btn-primary" disabled=true>Edit</button>
+      <button class="btn btn-primary" disabled="true">Edit</button>
    {{/if}} 
    
        </div>
@@ -51,4 +85,5 @@
   
 {{outlet}}
 
-<script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+    

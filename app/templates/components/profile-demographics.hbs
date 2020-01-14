@@ -1,10 +1,10 @@
     <div class="col-md-4 col-sm-12 col-xs-12">
     {{#if char.profile_image.name}}
             {{#link-to 'file' char.profile_image.folder char.profile_image.name}}
-                <img src="/game/uploads/{{char.profile_image.path}}" class="profile-image"/>
+                <img src="/game/uploads/{{char.profile_image.path}}" alt="{{char.name}}'s icon"  class="profile-image">
             {{/link-to}}
     {{else}}
-        <img src="/game/uploads/theme_images/noicon.png" class="profile-image" />
+        <img src="/game/uploads/theme_images/noicon.png" class="profile-image" alt="{{char.name}}'s icon" >
     {{/if}}
     </div>
 
@@ -25,7 +25,7 @@
             </div>
         </div>
         {{/each}}
-                
+                                
         
         <div class="profile-divider">
         </div>
@@ -47,7 +47,7 @@
         
         <div class="row">
             <div class="col-sm-3">
-                    <b>Player:</b> 
+                    <b>Player</b> 
             </div>
             <div class="col-sm-9">
                     <a href="http://arescentral.aresmush.com/handle/{{char.handle}}">{{char.handle}}</a>
@@ -55,6 +55,15 @@
         </div>
         
         {{/if}}
+        
+        <div class="row">
+            <div class="col-sm-3">
+                    <b>Last Online</b> 
+            </div>
+            <div class="col-sm-9">
+                    {{char.last_online}}
+            </div>
+        </div>
         </div>
         
     </div>

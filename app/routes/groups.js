@@ -6,7 +6,7 @@ export default Route.extend(DefaultRoute, {
     gameApi: service(),
 
     model: function() {
-      let api = this.get('gameApi');
-      return api.requestOne('chargenInfo');
+      let api = this.gameApi;
+      return api.requestOne('groupInfo');
     }
 });

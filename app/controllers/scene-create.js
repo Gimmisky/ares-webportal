@@ -1,4 +1,5 @@
 import Controller from '@ember/controller';
+import { computed } from '@ember/object';
 import { inject as service } from '@ember/service';
 
 export default Controller.extend({
@@ -6,13 +7,13 @@ export default Controller.extend({
     flashMessages: service(),
     queryParams: [ 'location' ],
     
-    sceneTypes: function() { 
+    sceneTypes: computed(function() { 
         return this.get('model.sceneTypes').map(p => p.get('name'));
-    }.property('model'),
+    }),
     
-    scenePrivacyValues: function() { 
+    scenePrivacyValues: computed(function() { 
         return [ 'Open', 'Private' ];
-    }.property(),
+    }),
     
     actions: {
         plotChanged(newPlot) {
@@ -34,7 +35,7 @@ export default Controller.extend({
           this.set('model.scene.location', newLocation);
         },
         save() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             let tags = this.get('model.scene.tags') || [];
             if (!Array.isArray(tags)) {
                 tags = tags.split(/[\s,]/);
@@ -52,6 +53,7 @@ export default Controller.extend({
                participants: (this.get('model.scene.participants') || []).map(p => p.name),
                related_scenes: (this.get('model.scene.related_scenes') || []).map(s => s.id),
                tags: tags,
+               content_warning: this.get('model.scene.content_warning'),
                log: this.get('model.scene.log')}, null)
             .then( (response) => {
                 if (response.error) {
@@ -59,7 +61,7 @@ export default Controller.extend({
                 }
                 this.transitionToRoute('scene',                          
                           response.id);
-                this.get('flashMessages').success('Scene updated!');
+                this.flashMessages.success('Scene updated!');
             });
         }
     }

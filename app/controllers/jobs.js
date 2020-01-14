@@ -1,3 +1,4 @@
+import { set } from '@ember/object';
 import Controller from '@ember/controller';
 import { inject as service } from '@ember/service';
 
@@ -6,62 +7,63 @@ export default Controller.extend({
   gameSocket: service(),
   session: service(),
   flashMessages: service(),
-  categoryFilter: null,
   newJobs: null,
+  page: 1,
   
-  filteredJobs: function(){
-    let allJobs = this.get('model.jobs');
-    let selectedStatus = this.get('model.status_filter').filter(s => s.selected).map(s => s.name);
-    let category = this.get('categoryFilter');
-    
-    return allJobs.filter(j => (!category || category === j.category) && (selectedStatus.includes(j.status) || j.unread));
-  }.property('model.status_filter.@each.selected', 'categoryFilter'),
-        
   setupCallback: function() {
       let self = this;
-      this.get('gameSocket').set('jobsCallback', function(msg) {
-          self.onJobsMessage(msg) } );
+      this.gameSocket.setupCallback('job_update', function(type, msg, timestamp) {
+          self.onJobsMessage(type, msg, timestamp) } );
   },
   
-  onJobsMessage: function(message) {
-    let splitMsg = message.split('|');
+  resetOnExit: function() {
+      this.set('page', 1);
+      this.set('newJobs', null);
+  },
+  
+  onJobsMessage: function(type, msg /* , timestamp */ ) {
+    let splitMsg = msg.split('|');
     let jobId = splitMsg[0];
-    let jobMessage = splitMsg[1];
     let found = false;
     
-    this.get('model.jobs').forEach((j) => {
+    this.get('model.jobs.jobs').forEach((j) => {
       if (j.id === jobId) {
-        j.set(`unread`, true);
+        set(j, `unread`, true);
         found = true;
       }
     });  
     
     if (!found) {
       this.set('newJobs', true);
-    }
-    
-    this.get('gameSocket').notify(jobMessage);
-    
+    }    
   },
-          
+  
+  
   actions: {
-    categoryFilterChanged(filter) {
-      this.set('categoryFilter', filter);
-    },
+
     
-    clearCategoryFilter() {
-      this.set('categoryFilter', null);
+    goToPage(newPage) {
+      this.set('page', newPage);
+      let api = this.gameApi;
+      api.requestOne('jobs', { page: newPage }, null)
+      .then( (response) => {
+        if (response.error) {
+          return;
+        }
+        this.set('model.jobs', response);
+      });
     },
     
     filterJobs(filter) {
-      let api = this.get('gameApi');
-      api.requestOne('jobsFilter', { filter: filter }, null)
+      this.set('page', 1);
+      let api = this.gameApi;
+      api.requestOne('jobsFilter', { filter: filter, page: 1 }, null)
       .then( (response) => {
         if (response.error) {
           return;
         }
         this.send('reloadModel');
-        this.get('flashMessages').success('Jobs filtered!');
+        this.flashMessages.success('Jobs filtered!');
       });
     }
   }

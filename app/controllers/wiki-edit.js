@@ -5,15 +5,17 @@ export default Controller.extend({
     gameApi: service(),
     flashMessages: service(),
     preview: null,
+    minorEdit: false,
     
     resetOnExit: function() {
         this.set('preview', null);
+        this.set('minorEdit', null);
     },
     
     actions: {
         
         cancel() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             
             api.requestOne('editWikiCancel', { id: this.get('model.id') })
             .then( (response) => {
@@ -26,7 +28,7 @@ export default Controller.extend({
         },
         
         preview() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             
             api.requestOne('markdownPreview', { text: this.get('model.text') })
             .then( (response) => {
@@ -38,7 +40,7 @@ export default Controller.extend({
         },
         
         save() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             let tags = this.get('model.tags') || [];
             if (!Array.isArray(tags)) {
                 tags = tags.split(/[\s,]/);
@@ -48,6 +50,7 @@ export default Controller.extend({
                title: this.get('model.title'), 
                name: this.get('model.name'),
                text: this.get('model.text'),
+               minor_edit: this.get('minorEdit'),
                tags: tags}, null)
             .then( (response) => {
                 if (response.error) {
@@ -55,7 +58,7 @@ export default Controller.extend({
                 }
                 this.transitionToRoute('wiki-page',                          
                           this.get('model.name'));
-                this.get('flashMessages').success('Page updated!');
+                this.flashMessages.success('Page updated!');
             });
         }
     }

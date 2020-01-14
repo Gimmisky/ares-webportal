@@ -12,9 +12,9 @@
      
      {{#link-to 'wiki-source' model.page_id v.id}}
      {{#if (eq v.id model.version_id)}}
-     <i class="far fa-dot-circle fa-fw" aria-hidden="true"></i>
+     <i class="far fa-dot-circle fa-fw" aria-label="Current Version"></i>
      {{else}}
-     <i class="far fa-circle fa-fw"></i>
+     <i class="far fa-circle fa-fw" aria-label="Other Version"></i>
      {{/if}}
      
      {{v.created}} ({{v.author}}){{/link-to}}
@@ -42,7 +42,7 @@
     <div class="panel-heading">
         Compared to Previous Version
         &nbsp;
-        <a data-toggle="collapse" href="#compare"><button class="btn btn-default btn-collapse">Show/Hide</button></a>
+        <a data-toggle="collapse" href="#compare" class="btn btn-default btn-collapse">Show/Hide</a>
         
     </div>
     <div id="compare" class="panel-collapse collapse">

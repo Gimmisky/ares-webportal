@@ -4,15 +4,17 @@
 </div>
 
 <div class="col-sm-1">
-<button id="dec-skill" {{action "decrement"}}>-</button>
+<button class="fs3-skillbutton" id="dec-skill" {{action "decrement"}}>-</button>
 </div>
 
-<div class="col-sm-2">
-{{rating}} ({{ratingName}})
+<div class="col-sm-3">
+{{fs3-dots rating=rating max=8}}
+<br>
+{{ratingName}}
 </div>
 
 <div class="col-sm-1">
-<button id="inc-skill" {{action "increment"}}>+</button>
+<button class="fs3-skillbutton" id="inc-skill" {{action "increment"}}>+</button>
 </div>
 
 </div>
@@ -37,5 +39,5 @@
 {{/if}}
 
 <div class="row">
-<div class="col-sm-12" class="fs3-divider">&nbsp;</div>
+<div class="col-sm-12 fs3-divider">&nbsp;</div>
 </div>

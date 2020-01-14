@@ -8,36 +8,58 @@ export default Controller.extend({
   title: '',
   category: '',
   description: '',
+  template: '',
   submitter: null,
+  participants: null,
+
+  init: function() {
+    this._super(...arguments);
+    this.set('participants', []);
+  },
     
   resetOnExit: function() {
     this.set('title', '');
-    this.set('category', this.get('model.options.request_category'));
+    this.setCategory(this.get('model.options.request_category'));
     this.set('description', '');
     this.set('submitter', null);
+    this.set('participants', []);
+  },
+  
+  setCategory: function(cat) {
+    this.set('category', cat);
+    let category_template = this.get(`model.options.category_templates.${cat}`);
+    if (!this.description || this.description == this.template) {
+      this.set('description', category_template);
+    }
+    this.set('template', category_template);
   },
     
   actions: {
     changeCategory: function(cat) {
-      this.set('category', cat);
+      this.setCategory(cat);
     },
       
     createJob: function() {
-      let api = this.get('gameApi');
+      let api = this.gameApi;
       api.requestOne('jobCreate', { 
-        title: this.get('title'), 
-        category: this.get('category') || this.get('model.options.request_category'),
-        description: this.get('description'),
+        title: this.title, 
+        category: this.category || this.get('model.options.request_category'),
+        description: this.description,
+        participants: (this.participants || []).map(p => p.id),
         submitter: this.get('submitter.name') }, null)
         .then( (response) => {
           if (response.error) {
             return;
           }
           this.transitionToRoute('job', response.id);
-          this.get('flashMessages').success('Job created!');
+          this.flashMessages.success('Job created!');
         });
       },
       
+      participantsChanged: function(newParticipants) {
+          this.set('participants', newParticipants);
+      },
+
       submitterChanged(submitter) {
           this.set('submitter', submitter);
       },

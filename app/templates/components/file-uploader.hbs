@@ -8,27 +8,35 @@
         {{#if showSelector}}
         <p>Select files for upload...</p>
         
-        <input type="file" 
-           multiple="true" 
+        {{#if allowMulti}}
+        <input type="file"
+           multiple
            accept="image/*" 
-           onchange={{action "filesSelected"}}
-        />
+           onchange={{action "filesSelected"}}>
+        {{else}}
+        <input type="file"
+           accept="image/*" 
+           onchange={{action "filesSelected"}}>
+        {{/if}}
         
         {{else}}
 
-            {{fileCount}} files selected for upload.
+           <div class="alert alert-info"> {{fileCount}} files selected for upload. Please review the options, then click the upload button for <b>each file</b> to commence the upload.</div>
 
             <table class="table">
         
             {{#each files as |f|}}
             <tr>
-                <td><img class="upload-preview" src="{{f.url}}" /></td>
+                <td><img class="upload-preview" alt="preview image" src="{{f.url}}" ></td>
                 <td>
                     {{#if (not f.upload_success)}}
-                    
-                    <p><label class="col-xs-5">Name:</label> {{input type='text' value=f.name}}</p>
-                    <p><label class="col-xs-5">Folder:</label> {{input type='text' value=f.folder}}</p>
-                    <p><label class="col-xs-5">Overwrite?</label> {{input type='checkbox' checked=f.allowOverwrite}}</p>
+                      {{#if lockProperties}}
+                      <p><label class="col-xs-5">Folder:</label> {{f.folder}}</p>
+                      {{else}}
+                      <p><label class="col-xs-5">Name:</label> {{input type='text' value=f.name}}</p>
+                      <p><label class="col-xs-5">Folder:</label> {{input type='text' value=f.folder}}</p>
+                      <p><label class="col-xs-5">Overwrite?</label> {{input type='checkbox' checked=f.allowOverwrite}}</p>
+                      {{/if}}
                     {{/if}}
                     
                     {{#if f.upload_message}}
@@ -43,8 +51,8 @@
                 <td>{{f.sizeKb}}KB</td> 
                 <td>
                     {{#if (not f.upload_success)}}
-                        <button class="btn btn-default" {{action 'removeFile' f}}><i class="fa fa-ban" aria-hidden="true"></i></button>
-                        <button class="btn btn-primary" {{action 'uploadFile' f}}><i class="fa fa-upload" aria-hidden="true"></i></button>
+                        <button class="btn btn-default" {{action 'removeFile' f}}><i class="fa fa-ban" aria-label="Remove File"></i></button>
+                        <button class="btn btn-primary" {{action 'uploadFile' f}}><i class="fa fa-upload" aria-label="Upload File"></i></button>
                     {{/if}}
                 </td>
             </tr>

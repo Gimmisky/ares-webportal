@@ -5,11 +5,21 @@ export default Controller.extend({
     gameApi: service(),
     flashMessages: service(),
     queryParams: [ 'title' ],
+    template: null,
 
+    init: function() {
+      this._super(...arguments);
+      this.set('template', { title: 'blank', text: '' });
+    },
+    
+    resetOnExit: function() {
+        this.set('title', null);
+    },
+    
     actions: {
         
         save() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             let tags = this.get('model.tags') || [];
             if (!Array.isArray(tags)) {
                 tags = tags.split(/[\s,]/);
@@ -25,8 +35,13 @@ export default Controller.extend({
                 }
                 this.transitionToRoute('wiki-page',                          
                           response.name);
-                this.get('flashMessages').success('Page created!');
+                this.flashMessages.success('Page created!');
             });
+        },
+        
+        templateChanged(template) {
+          this.set('model.text', template.text);
+          this.set('template', template);
         }
     }
 });

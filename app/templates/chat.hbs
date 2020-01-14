@@ -4,39 +4,49 @@
 
 <div class="row">
   
-<div class="col col-xs-3">
+<div class="col col-xs-12 col-md-3">
     
-  {{#each channelsByActivity as |channel|}}
-    {{#if channel.allowed}}
-      {{#if channel.enabled}}
-        <button {{action 'changeChannel' channel}} 
-           class="btn btn-default chat-button {{if (eq channel.key selectedChannel.key) 'chat-button-active' ''}}">
-           {{#if channel.is_page}}
-           &lt;PM&gt;
-           {{/if}}
-           {{channel.title}}
-          {{#if channel.muted}}
-              <i class="fa fa-microphone-slash"></i>
-          {{/if}}
-          {{#if (and channel.is_page channel.is_unread)}}
-            <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-hidden="true"></i></span>
-          {{else}}
-            <span class="label label-pill label-primary">{{channel.new_messages}}</span>
-          {{/if}}
-          </button>
-      <br/>
+  <button class="btn btn-default visible-sm visible-xs hidden-md" type="button" data-toggle="collapse" data-target="#channelMenuCollapse" aria-expanded="false" aria-controls="channelMenuCollapse">
+      <i class="fas fa-bars"></i>
+      {{#if anyNewActivity}}
+      <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-label="New Activity"></i></span>
       {{/if}}
-    {{/if}}
-  {{/each}}
+    </button>
+
+    <div class="collapse in" id="channelMenuCollapse">
+    
+    {{#each channelsByActivity as |channel|}}
+      {{#if channel.can_join}}
+        {{#if channel.enabled}}
+          <button {{action 'changeChannel' channel}} 
+             class="btn btn-default chat-button {{if (eq channel.key selectedChannel.key) 'chat-button-active' ''}}">
+             {{#if channel.is_page}}
+             &lt;PM&gt;
+             {{/if}}
+             {{channel.title}}
+            {{#if channel.muted}}
+                <i class="fa fa-microphone-slash"></i>
+            {{/if}}
+            {{#if (and channel.is_page channel.is_unread)}}
+              <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-label="New Activity"></i></span>
+            {{else}}
+              <span class="label label-pill label-primary">{{channel.new_messages}}</span>
+            {{/if}}
+            </button>
+        <br>
+        {{/if}}
+      {{/if}}
+    {{/each}}
+   
 
     <ul class="nav chat-nav">
       <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-        <span class="btn btn-default chat-button" href="#" role="button">Add Channel <span class="caret"></span></span> </a>
+        <span class="btn btn-default chat-button" href="#">Add Channel <span class="caret"></span></span> </a>
         <ul class="dropdown-menu">
           {{#each model.chat as |channel|}}
-            {{#if channel.allowed}}
+            {{#if channel.can_join}}
               {{#if (not channel.enabled)}}
                 <li><a href="#" {{action 'joinChannel' channel.title}}>{{channel.title}}</a></li>
               {{/if}}
@@ -47,28 +57,28 @@
       <li>
         <span class="btn btn-default chat-button" role="button" {{action 'newConversation'}}>New Conversation</span>
       </li>
-  </ul>
+    </ul>
+  </div>
   
 </div>
 
-<div class="col col-xs-9">
+<div class="col col-xs-12 col-md-9">
 
   {{#if selectedChannel}}
 
-    <b>{{selectedChannel.title}}</b> <a href="#" {{action "scrollDown"}}><i class="fas fa-chevron-circle-down">
-      {{#bs-tooltip placement="left"}}Scroll to bottom.{{/bs-tooltip}}
-    
-    </i></a>
+    <b>{{selectedChannel.title}}</b> <a href="#" {{action "scrollDown"}}>
+      {{tooltip-icon position='left' message='Scroll to bottom.' icon='fas fa-chevron-circle-down'}}
+      </a>
 
   
     {{#if scrollPaused}}
-            <a href="#" {{action "unpauseScroll"}}><i class="fas fa-play">
-              {{#bs-tooltip placement="left"}}Resume scrolling.{{/bs-tooltip}}
-            </i></a>
+            <a href="#" {{action "unpauseScroll"}}>
+              {{tooltip-icon position='left' message='Resume scrolling.' icon='fas fa-play'}}
+            </a>
     {{else}}
-            <a href="#" {{action "pauseScroll"}}><i class="fas fa-pause">
-              {{#bs-tooltip placement="left"}}Pause scrolling.{{/bs-tooltip}}
-            </i></a>
+            <a href="#" {{action "pauseScroll"}}>
+              {{tooltip-icon position='left' message='Pause scrolling.' icon='fas fa-pause'}}
+            </a>
     {{/if}}
         
         
@@ -115,7 +125,11 @@
     
           <div id="chat-window">
           {{#each channel.messages as |message|}}
-              <div class="timestamp-tip">{{message.timestamp}}</div>
+              <div class="timestamp-tip">{{message.timestamp}} 
+                {{#if message.timediff}}
+                ({{message.timediff}} ago)
+                {{/if}}
+              </div>
               {{{ansi-format text=message.message}}}
           {{/each}}
           </div>
@@ -125,7 +139,9 @@
           <span class="label label-warning">Scrolling is paused!</span>
           {{/if}}
     
-          {{cmd-box value=chatMessage class="chat-box" cols="80" rows="6" onEnter=(action "send") }}
+          {{#if channel.can_talk}}
+            {{cmd-box value=chatMessage class="chat-box" cols="80" rows="6" onEnter=(action "send") }}
+          {{/if}}
 
 
       {{else}}
@@ -135,7 +151,7 @@
 
           <div class="alert alert-warning">
               <p>You are not on this channel.</p>
-              <br/>
+              <br>
               <button class="btn btn-default" {{action "joinChannel" channel.key}}>Join Channel</button>
           </div>
         
@@ -145,52 +161,96 @@
   {{/if}}
 
   {{/each}}
+  
 
-</div>
-</div>
+  <div class="row">
 
-<div class="row">
+    {{#each model.chat as |channel|}}
 
-  {{#each model.chat as |channel|}}
+    {{#if (eq channel.key selectedChannel.key)}}
 
-  {{#if (eq channel.key selectedChannel.key)}}
-
-      {{#if channel.enabled}}
+        {{#if channel.enabled}}
             
-          <div class="pull-right">
-            {{#if (not channel.is_page)}}
-              <button class="btn-warning btn" {{action "leaveChannel"}}>Leave Channel</button>
-              {{#if channel.muted}}
-              <button class="btn-default btn" {{action "muteChannel" false}}>Unmute Channel</button>
-              {{else}}
-              <button class="btn-default btn" {{action "muteChannel" true}}>Mute Channel</button>
-              {{/if}}
-            {{/if}}
-              <button class="btn-primary btn" {{action "send"}}>Send Message</button>
-          </div>
-    
-      <div class="clearfix"></div>
-    
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <h4>Who's On {{channel.title}}</h4>
+            <ul class="nav navbar-nav">    
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-              <div class="icon-row">
-              {{#each channel.who as |who|}}
-                {{char-icon-inline char=who }}
-                {{#if who.muted}}<i class="fa fa-microphone-slash"></i>{{/if}}
-
-              {{/each}}
+                  <span class="btn btn-default" href="#">Chat Menu <span class="caret"></span></span> </a>
+                  <ul class="dropdown-menu">
+                  {{#if (not channel.is_page)}}
+                    <li><a href="#" {{action "leaveChannel"}}>Leave Channel</a></li>
+                    {{#if channel.muted}}
+                    <li><a href="#" {{action "muteChannel" false}}>Unmute Channel</a></li>
+                    {{else}}
+                    <li><a href="#" {{action "muteChannel" true}}>Mute Channel</a></li>
+                    {{/if}}
+                  {{/if}}
+                  <li><a href="#" {{action (mut showReport) true}}>Report Abuse</a></li>
+                </ul>
+                </li>
+            </ul>
+            
+            
+            {{#if channel.can_talk}}
+              <div class="pull-right">
+                <button class="btn-primary btn" {{action "send"}}>Send Message</button>
               </div>
+            {{/if}}
+    
+        <div class="clearfix"></div>
+    
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <h4>Who's On {{channel.title}}</h4>
 
-              <div class="clearfix"></div>
-            </div>
-          </div>      
-      {{/if}}
-  {{/if}}
+                <div class="icon-row">
+                {{#each channel.who as |who|}}
+                  {{char-icon-inline char=who }}
+                  {{#if who.muted}}<i class="fa fa-microphone-slash"></i>{{/if}}
 
-  {{/each}}
+                {{/each}}
+                </div>
+
+                <div class="clearfix"></div>
+              </div>
+            </div>      
+        {{/if}}
+    {{/if}}
+
+    {{/each}}
+  </div>
+  
+
 </div>
+</div>
+
+
+{{#bs-modal-simple
+    title="Report Offensive Chat"
+    closeTitle="Cancel"
+    submitTitle="Report"
+    size=null
+    fade=false
+    open=showReport
+    onSubmit=(action "reportChat")
+    onHide=(action (mut showReport) null)}}
+        
+        <p>Select the offensive messages below and enter a reason in the text box.</p>
+        <p>{{input type="text"  size=50 value=reportReason}}</p>
+        
+        <div class="chat-report">
+        <table>
+        {{#each selectedChannel.messages as |message|}}
+        <tr>
+          <td>{{input type='checkbox' checked=message.checked}}</td>
+          <td>{{{ansi-format text=message.message}}}</td>
+        </tr>
+        {{/each}}
+        </table>
+        </div>
+        
+  {{/bs-modal-simple}}
+
 
 
 {{flash-messages}}

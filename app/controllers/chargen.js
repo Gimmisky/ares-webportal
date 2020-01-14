@@ -1,27 +1,29 @@
 import Controller from '@ember/controller';
+import { computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import FS3Chargen from 'ares-webportal/mixins/fs3-chargen';
 
-export default Controller.extend(FS3Chargen, {    
+export default Controller.extend({    
     flashMessages: service(),
     gameApi: service(),
-    charErrors: [],
-    toggleCharChange: false,
-    
-    alerts: function() {
-        return this.get('charErrors');
-    }.property('toggleCharChange'),
-    
-    genders: function() {
-        return [ { value: 'Male' }, { value: 'Female' }, { value: 'Other' }];
-    }.property(),
+    charErrors: null,
+    fs3UpdateCallback: null,
+    fs3ValidateCallback: null,
 
-    showCharErrors: function() {
-        return this.get('alerts').length > 0;
-    }.property('alerts'),
+    init: function() {
+      this._super(...arguments);
+      this.set('charErrors', []);
+    },
+      
+    genders: computed(function() {
+      let list = [];
+      this.get('model.cgInfo.genders').forEach(function(g) {
+        list.push({ value: g });
+      });
+      return list;
+    }),
 
-    
-    anyGroupMissing: function() {
+
+    anyGroupMissing: computed('model', function() {
         let groups = this.get('model.char.groups');
         let anyMissing = false;
         
@@ -31,54 +33,52 @@ export default Controller.extend(FS3Chargen, {
             } 
         });
         return anyMissing;    
-    }.property('toggleCharChange', 'model'),
+    }),
     
     buildQueryDataForChar: function() {
         
+      let fs3 = this.fs3UpdateCallback ? this.fs3UpdateCallback() : null;
+      
         return { 
             id: this.get('model.char.id'),
-            fullname: this.get('model.char.fullname'),
             demographics: this.get('model.char.demographics'),
             groups: this.get('model.char.groups'),
             desc: this.get('model.char.desc'),
             shortdesc: this.get('model.char.shortdesc'),
             rp_hooks: this.get('model.char.rp_hooks'),
+            profile_image: this.get('model.char.profile_image'),
             background: this.get('model.char.background'),
-            fs3: this.buildFs3QueryData()
+            lastwill: this.get('model.char.lastwill'),
+            fs3: fs3
         };
     }, 
     
     
-    toggleCharChanged: function() {
-        this.set('toggleCharChange', !this.get('toggleCharChange'));        
-    },
     
     actions: {
         
         genderChanged(val) {
-            this.set('model.char.demographics.gender.value', val.value);
-            this.validateChar();
+           this.set('model.char.demographics.gender.value', val.value);
         },
         
         groupChanged(group, val) {
+          if (val) {
             this.set(`model.char.groups.${group}`, val);
-            this.validateChar();
+          } else {
+            this.set(`model.char.groups.${group}.value`, '');
+            this.set(`model.char.groups.${group}.desc`, '');
+          }
+            
         },
         
-        reset() {
-            let api = this.get('gameApi');
-            api.requestOne('chargenReset', { char: this.buildQueryDataForChar() })
-            .then( (response) => {
-                if (response.error) {
-                    return;
-                }
-                this.send('reloadModel');
-                this.flashMessages.success('Abilities reset.');
-            });    
+        fileUploaded(folder, name) {
+          folder = folder.toLowerCase();
+          name = name.toLowerCase();
+          this.set('model.char.profile_image', `${folder}/${name}`);
         },
         
         review() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             api.requestOne('chargenSave', { char: this.buildQueryDataForChar() })
             .then( (response) => {
                 if (response.error) {
@@ -88,23 +88,38 @@ export default Controller.extend(FS3Chargen, {
             });   
         },
         
+        reset() {
+          let api = this.gameApi;
+          api.requestOne('chargenReset', { char: this.buildQueryDataForChar() })
+          .then( (response) => {
+            if (response.error) {
+              return;
+            }
+            this.send('reloadModel');
+            this.flashMessages.success('Abilities reset.');
+          });    
+        },
+        
         save() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             api.requestOne('chargenSave', { char: this.buildQueryDataForChar() })
             .then( (response) => {
                 if (response.error) {
                     return;
                 }
-                this.validateChar();
+                this.charErrors.clear();
+                if (this.fs3ValidateCallback) {
+                  this.fs3ValidateCallback();
+                }
                 if (response.alerts) {
-                    response.alerts.forEach( r => this.charErrors.push(r) );
+                  response.alerts.forEach( r => this.charErrors.pushObject(r) );
                 }
                 this.flashMessages.success('Saved!');
             }); 
         },
         
         unsubmit() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             api.requestOne('chargenUnsubmit')
             .then( (response) => {
                 if (response.error) {

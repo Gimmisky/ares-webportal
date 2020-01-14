@@ -9,13 +9,13 @@ export default Component.extend({
         
         switch (this.rating) {
             case 0:
-                name = "Unskilled";
+                name = "Everyman";
                 break;
             case 1:
                 name = "Beginner";
                 break;
             case 2:
-                name =  "Intermediate";
+                name =  "Conversational";
                 break;
             case 3:
                 name =  "Fluent";
@@ -26,8 +26,8 @@ export default Component.extend({
     
     actions: { 
         increment() {
-            var current = this.get('rating');
-            if (current < this.get('maxRating')) {
+            var current = this.rating;
+            if (current < this.maxRating) {
                 this.set('rating',  current + 1);
             }
             this.set('ratingName', this.getRatingName());
@@ -35,8 +35,8 @@ export default Component.extend({
         },
     
         decrement() {
-            var current = this.get('rating');
-            if (current > this.get('minRating')) {
+            var current = this.rating;
+            if (current > this.minRating) {
                 this.set('rating',  current - 1);
             }
             this.set('ratingName', this.getRatingName());

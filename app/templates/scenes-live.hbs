@@ -3,7 +3,7 @@
 
 <p>This list shows scenes that are currently in progress.  Private scenes require an invitation, but open scenes are open to anyone.   You can play in-game or via the web portal.</p>
 
-<p>The unread flags <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-hidden="true"></i></span> show new activity in public scenes or scenes you're watching/participating in.</p>
+<p>The unread flags <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-label="New Activity Flag"></i></span> show new activity in public scenes or scenes you're watching/participating in.</p>
 
 {{#if isApproved}}
 <div class="row">
@@ -21,41 +21,20 @@
     
 <tr>
   <th></th>
-  <th>Title / Status</th>
-  <th>Location</th>
-  <th>Participants</th>
-  <th>IC Date</th>
-  <th>Last Activity</th>
+  <th class="col-xs-3">Title / Status</th>
+  <th class="col-xs-5">Participants / Location / Summary</th>
+  <th class="col-xs-1">IC Date</th>
+  <th class="col-xs-2">Last Activity</th>
+  <th class="col-xs-1"></th>
 </tr>
 
 {{#each model.active as |scene| }}
 <tr>
     <td>
         {{#if scene.is_unread}}
-        <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-hidden="true"></i></span>
+        <span class="label label-pill label-primary"> <i class="fa fa-flag" aria-label="New Activity"></i></span>
         {{/if}}
         
-        {{#if scene.watching}}
-          <button class="btn btn-default" {{action 'stopWatching' scene.id}}>
-          <i class="fa fa-eye-slash" aria-hidden="true"></i>
-            {{#bs-tooltip placement="left"}}Stop watching.{{/bs-tooltip}}
-          </button>
-        {{else}}
-          {{#if scene.can_view}}
-            <button class="btn btn-default" {{action 'watchScene' scene.id}}>
-            <i class="fa fa-eye" aria-hidden="true"></i>
-              {{#bs-tooltip placement="left"}}Watch scene.{{/bs-tooltip}}
-            </button>
-
-            {{#if (not scene.participating) }}
-              <button class="btn btn-default" {{action 'joinScene' scene.id}}>
-              <i class="fa fa-sign-in-alt" aria-hidden="true"></i>
-                {{#bs-tooltip placement="left"}}Join scene.{{/bs-tooltip}}
-              </button>
-            {{/if}}
-          {{/if}}
-      
-        {{/if}}
     </td>
     <td>
         
@@ -70,14 +49,27 @@
         {{else}}
         <span class="label label-success">Open</span>
         {{/if}}
+        {{scene-tag scene=scene}}
     </td>
     <td>
-        {{scene.location}}
-    </td>
-    <td>
+      
         {{#each scene.participants as |char|}}
-        {{char-icon-inline char=char icon-class=(if char.online '' 'faded')}}
+        {{char-icon-inline char=char}}
         {{/each}}
+        
+        {{#if (or scene.can_view (not scene.is_private))}}
+          <p>{{#if scene.content_warning}}
+          {{content-warning-tag warning=scene.content_warning position='top'}}
+          {{/if}}
+ 
+            {{scene.location}}</p>
+        
+          {{#if scene.summary}}
+          <p>{{{ansi-format text=scene.summary}}}
+          </p>
+          {{/if}}
+        {{/if}}
+        
     </td>
     <td>
       <p>{{scene.icdate}}</p>
@@ -90,6 +82,26 @@
       {{scene.updated}} 
       
     </td>
+    <td>
+      {{#if scene.watching}}
+        <a href="#" {{action 'stopWatching' scene.id}}>
+          {{tooltip-icon position='left' message='Stop watching scene.' icon='fa fa-eye-slash'}}
+        </a>
+      {{else}}
+        {{#if scene.can_view}}
+          <a href="#" {{action 'watchScene' scene.id}}>
+            {{tooltip-icon position='left' message='Watch scene.' icon='fa fa-eye'}}
+          </a>
+
+          {{#if (not scene.participating) }}
+            <a href="#" {{action 'joinScene' scene.id}}>
+              {{tooltip-icon position='left' message='Join scene.' icon='fa fa-sign-in-alt'}}
+            </a>
+          {{/if}}
+        {{/if}}
+    
+      {{/if}}
+    </td>
 </tr>
 {{/each}}
 
@@ -97,11 +109,11 @@
 
 
 {{#if model.unshared}}
-<br/>
-<hr/>
+<br>
+<hr>
 
 <h4>Unshared Scenes</h4>
-<p>You have the following stopped, unshared scenes. Unshared scenes may be deleted after {{model.unshared_warning_days}} days, so you should download or share them before that happens.</p>
+<p>You have the following stopped, unshared scenes. Unshared scenes may be deleted after {{model.unshared_deletion_days}} days, so you should download or share them before that happens.</p>
 <ul>
 {{#each model.unshared as |scene|}}
 <li>{{#link-to 'scene-live' scene.id}}{{scene.title}}{{/link-to}} - {{scene.people}}</li>

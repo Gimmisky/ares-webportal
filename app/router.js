@@ -5,29 +5,35 @@ const Router = EmberRouter.extend({
   location: config.locationType,
   rootURL: config.rootURL,
     
-    didTransition() {
+ init() {
       this._super(...arguments);
-      window.scrollTo(0, 0);
+      this.on('routeDidChange', transition => {
+        window.scrollTo(0, 0);
+      });
     }
 });
 
 Router.map(function() {
   this.route('home', { path: ''});
 
-
-  this.route('actors');
+  this.route('account');
+  this.route('achievements');
+  this.route('admins');
   this.route('app-review', { path: '/app/:id' });
+  this.route('area', { path: '/area/:id'});
+  this.route('area-edit', { path: '/area/:id/edit'});
   this.route('census');
   this.route('census-group', { path: '/census/:filter' });
   this.route('characters', { path: '/chars'});
   this.route('char', { path: '/char/:id' });
   this.route('char-edit', { path: '/char/:id/edit' });
-  this.route('char-source', { path: '/char/:charId/source/:versionId' });
+  this.route('char-source', { path: '/char/:char_id/source/:version_id' });
   this.route('chargen');
   this.route('chargen-review');
   this.route('chat');
   this.route('combat', { path: '/combat/:id' });
   this.route('combat-log', { path: '/combat/:id/log' });
+  this.route('combat-teams', { path: '/combat/:id/teams' });
   this.route('combat-setup', { path: '/combat/:id/setup' });
   this.route('combatant-edit', { path: '/combatant/:id' });
   this.route('combats');
@@ -40,10 +46,12 @@ Router.map(function() {
   this.route('files');
   this.route('file', { path: '/file/:folder/:name' });
   this.route('file-edit', { path: '/file/edit/:folder/:name' });
-  this.route('forum', { path: '/forum' });
+  this.route('forum');
   this.route('forum-category', { path: '/forum/:category_id'});
   this.route('forum-topic', { path: '/forum/:category_id/:topic_id'});
   this.route('forum-create-post', { path: '/forum/:category_id/create-post' })
+  this.route('fs3-limits');
+  this.route('fs3-xp-costs');
   this.route('fs3combat-gear', { path: '/fs3combat/gear/' });
   this.route('fs3combat-gear-detail', { path: '/fs3combat/gear/:type/:name' })
   this.route('fs3skills-abilities', { path: '/fs3skills/abilities' });
@@ -51,22 +59,23 @@ Router.map(function() {
   this.route('groups');
   this.route('help');
   this.route('help-topic', { path: '/help/:topic' });
+  this.route('help-override', { path: '/help/:topic/override' });
   this.route('jobs');
   this.route('job', { path: '/job/:id' });
   this.route('job-create');
   this.route('locations');
   this.route('location', { path: '/location/:id'});
-  this.route('location-edit', { path: '/location/:id/edit'});
   this.route('logs');
   this.route('log', { path: '/log/:file' });
-  this.route('login', { path: '/login', query_params: ['redirect'] });
+  this.route('login', { query_params: ['redirect'] });
   this.route('logout');
   this.route('mail');
   this.route('mail-message', { path: '/mail/:id'});
   this.route('mail-send');
   this.route('manage');
+  this.route('notifications');
   this.route('play');
-  this.route('players', { path: '/players'});
+  this.route('players');
   this.route('player', { path: '/player/:id'});
   this.route('plots');
   this.route('plot', { path: '/plot/:id' });
@@ -92,12 +101,14 @@ Router.map(function() {
   this.route('search-chars');
   this.route('search-help');
   this.route('search-forum');
+  this.route('server-info');
   this.route('setup');
   this.route('setup-colors');
   this.route('shutdown');
   this.route('textfile', { path: '/textfile/:file_type/:file' });
   this.route('tinker');
-  this.route('who', { path: '/who'});
+  this.route('tos');
+  this.route('who');
   this.route('wiki');
   this.route('wiki-page', { path: '/wiki/:id'});
   this.route('wiki-all', { path: '/wiki/all'});

@@ -8,7 +8,7 @@
         <label for="name" class="col-xs-2 col-form-label">Page Name:</label>
       </div>
       <div class="col-sm-9">
-        {{input type="text" size=25 id="name" enter="save" value=model.name}}
+        {{input type="text" size=25 id="name" enter=(action "save")  value=model.name}}
       </div> 
     </div>
     
@@ -19,7 +19,7 @@
         <label for="title" class="col-xs-2 col-form-label">Title:</label>
       </div>
       <div class="col-sm-9">
-        {{input type="text" size=25 id="title" enter="save" value=model.title}}
+        {{input type="text" size=25 id="title" enter=(action "save")  value=model.title}}
       </div> 
     </div>
     
@@ -28,17 +28,20 @@
          <label for="tags" class="col-xs-2 col-form-label">Tags:</label>
       </div>
       <div class="col-sm-9">
-        {{input type="text" size=25 id="tags" enter="save" value=model.tags}}
+        {{input type="text" size=25 id="tags" enter=(action "save")  value=model.tags}}
       </div> 
     </div>
 
    
-    {{markdown-editor text=model.text rows=20}}
+    {{markdown-editor text=model.text rows=30}}
   
     <div class="row">
         <div class="col col-xs-12">
             <div class="pull-right">
-                
+
+                {{#if model.can_do_minor_edits}}
+                {{input type='checkbox' checked=minorEdit}} Minor Edit
+                {{/if}}
                 <button class="btn btn-default" {{action 'cancel'}}>Cancel</button>
                 <button class="btn btn-primary" {{action 'save'}}>Save</button>
         </div>
@@ -59,4 +62,4 @@
     {{/if}}
     
 
-<hr/>
+<hr>

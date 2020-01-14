@@ -13,6 +13,12 @@
 
 </p>
 
+  {{#if newActivity}}
+      <div class="alert alert-warning">
+        There has been new activity on this job.  Reload the page to update it.
+      </div>
+  {{/if}}
+  
 <table>
   <tr>
     <td>
@@ -27,7 +33,7 @@
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-                <span class="btn btn-default" href="#" role="button">Job Menu <span class="caret"></span></span> </a>
+                <span class="btn btn-default" href="#">Job Menu <span class="caret"></span></span> </a>
                 <ul class="dropdown-menu">
                 <li><a href="#" {{action 'closeJob'}}>Close Job</a></li>
                 {{#if model.job.is_approval_job}}
@@ -43,6 +49,34 @@
 
   <tr>
     <td>
+      <label>Other Participants:</label>
+    </td>
+    <td>
+      {{#each model.job.participants as |participant|}}
+        {{char-icon-inline char=participant}}
+      {{/each}}
+    </td>
+    <td>
+      
+      <div class="job-participant-edit-box">
+       
+        {{#if editParticipants}}
+         {{#power-select-multiple selected=newParticipants options=model.characters searchField="name" onchange=(action "participantsChanged") as |char|}}
+          {{char.name}}
+        {{/power-select-multiple}}
+        <button class="btn btn-default" {{action (mut editParticipants) false}}>Cancel</button>
+        <button class="btn btn-primary" {{action 'saveParticipants'}}>Save</button>
+      {{else}}
+        <button class="btn btn-default" {{action (mut editParticipants) true}}>Edit</button>
+      {{/if}}
+        
+        </div>
+      
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
      <label>Assigned To:</label> 
     </td>
     <td>
@@ -56,7 +90,7 @@
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-            <span class="btn btn-default" href="#" role="button">Assign <span class="caret"></span></span> </a>
+            <span class="btn btn-default" href="#">Assign <span class="caret"></span></span> </a>
             <ul class="dropdown-menu">
             {{#each model.job.job_admins as |staff| }}
               <li><a href="#" {{action 'assignJob' staff}}>{{staff.name}}</a></li>
@@ -83,7 +117,7 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-              <span class="btn btn-default" href="#" role="button">Change Status <span class="caret"></span></span> </a>
+              <span class="btn btn-default" href="#">Change Status <span class="caret"></span></span> </a>
               <ul class="dropdown-menu">
               {{#each model.options.status_values as |status| }}
                 <li><a href="#" {{action 'changeData' 'status' status}}><span class="label job-status job-status-{{status}}">&nbsp;</span> {{status}}</a></li>
@@ -110,7 +144,7 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-              <span class="btn btn-default" href="#" role="button">Change Category <span class="caret"></span></span> </a>
+              <span class="btn btn-default" href="#">Change Category <span class="caret"></span></span> </a>
               <ul class="dropdown-menu">
               {{#each model.options.category_values as |category| }}
                 <li><a href="#" {{action 'changeData' 'category' category}}><span class="label job-category job-category-{{category}}">&nbsp;</span> {{category}}</a></li>
@@ -141,42 +175,59 @@
 </table>
 
 
-<hr/>
+<hr>
 
     {{{ansi-format text=model.job.description}}}
 
-<hr/>
+<hr>
 
 {{#each model.job.replies as |r|}}
- <div>
+ <div class="job-reply {{if r.admin_only 'admin-only-reply' '' }}">
+     <div class="hint pull-right text-right">
+
+         <p>{{r.created}}</p>
+     
+         {{#if model.job.is_job_admin}}
+           <a href="#" {{action 'deleteReply' r.id}}><i class="fa fa-trash" aria-label="Delete Reply"></i></a>     
+         {{/if}}
+     
+     </div>
+     
+     
+     {{#if r.admin_only}}
+     <div class="label admin-only-reply-label">To Admins Only</div>
+     {{/if}}
      
      <p>{{char-icon-inline char=r.author}}</p>
-     <p><i> {{r.created}} </i> 
-      {{#if model.job.is_job_admin}}
-        <a href="#" {{action 'deleteReply' r.id}}><i class="fa fa-trash" aria-hidden="true"></i></a>     
-      {{/if}}
-      </p>
+       
      
-     
-         {{#if r.admin_only}}
-         <div class="label label-danger">To Admins Only</div>
-         {{/if}}
-         
+             
          {{{ansi-format text=r.message}}}
-         
-     
-     <hr/>
   </div>
+     <hr>
 {{/each}}
 
+  {{#if newActivity}}
+      <div class="alert alert-warning">
+        There has been new activity on this job.  Reload the page to update it.
+      </div>
+  {{/if}}
+  
 <div class="inline-response">
 <h3>Add Reply</h3>
 
     {{#if model.job.is_category_admin}}
         Respond to Admin Only? {{input type='checkbox' checked=replyAdminOnly}} 
     {{/if}}
+
+  <div class="{{if replyAdminOnly 'admin-only-reply' ''}}">
+    {{#if replyAdminOnly}}
+    <div class="label admin-only-reply-label">To Admins Only</div>
+    {{/if}}
+    <div>
+    </div>
         {{markdown-editor text=reply}}
-        
+    </div>
 </div>
 
 
@@ -187,14 +238,18 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-              <span class="btn btn-default" href="#" role="button">Job Menu <span class="caret"></span></span> </a>
+              <span class="btn btn-default" href="#">Job Menu <span class="caret"></span></span> </a>
               <ul class="dropdown-menu">
               <li><a href="#" {{action 'closeJob'}}>Close Job</a></li>
               {{#if model.job.is_approval_job}}
                 <li>{{#link-to 'app-review' model.job.author.id}}App Review for {{model.job.author.name}}{{/link-to}}</li>
                 <li>{{#link-to 'char' model.job.author.name}}Profile for {{model.job.author.name}}{{/link-to}}</li>
               {{/if}}
-              </ul>
+              {{#if model.job.fs3_enabled}}
+              <li><a href="#" {{action (mut selectSkillRoll) true}}>Add Ability Roll</a></li>
+              {{/if}}
+              
+            </ul>
             </li>
         </ul>
     {{/if}}
@@ -204,6 +259,8 @@
         </div>
   </div>
 </div>
+
+{{fs3-roll job=model.job destinationType='job' abilities=model.abilities selectSkillRoll=selectSkillRoll}}
 
 {{flash-messages}}
 {{outlet}}

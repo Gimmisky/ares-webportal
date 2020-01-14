@@ -9,12 +9,14 @@ export default Controller.extend({
     title: '',
     summary: '',
     description: '',
+    contentWarning: '',
     storyteller: null,
     
     resetOnExit: function() {
         this.set('title', '');
         this.set('summary', '');
         this.set('description', '');
+        this.set('contentWarning', '');
         this.set('storyteller', null);
     },
     
@@ -24,19 +26,20 @@ export default Controller.extend({
         },
         
         save: function() {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             api.requestOne('createPlot', { 
-               title: this.get('title'), 
-               summary: this.get('summary'),
+               title: this.title, 
+               summary: this.summary,
+               content_warning: this.get('contentWarning'),
                storyteller_id: this.get('storyteller.id'),
-               description: this.get('description')}, null)
+               description: this.description}, null)
             .then( (response) => {
                 if (response.error) {
                     return;
                 }
                 this.transitionToRoute('plot',                          
                           response.id);
-                this.get('flashMessages').success('Plot created!');
+                this.flashMessages.success('Plot created!');
             });
         }
     }

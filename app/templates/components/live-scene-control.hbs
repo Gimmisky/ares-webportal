@@ -16,12 +16,12 @@
 
  &nbsp; 
     {{#if scrollPaused}}
-    <br/>
+    <br>
        <span class="label label-warning">Scrolling is paused!</span>
     {{/if}}
     
     {{#if (not scene.is_watching)}}
-    <br/>
+    <br>
        <span class="label label-warning">You are not watching this scene and will not be notified of new scene activity.</span>
 
     {{/if}}
@@ -29,26 +29,23 @@
     <div class="ansi scene-log" id="live-scene-log">
     
 
-    {{#each scenePoses as |pose|}}    
+    {{#each scene.poses as |pose|}}    
             <div class="hint pull-right">
                 
                 
                 {{#if (not pose.is_system_pose)}}
-                <i class="fas fa-clock" >
-                  {{#bs-tooltip placement="left"}}{{pose.timestamp}}{{/bs-tooltip}}
-                </i>
+                  {{tooltip-icon position='left' message=pose.timestamp icon='fas fa-clock'}}
                 {{/if}}
-                
                 {{#if (not scene.reload_required)}}
                   {{#if (and isApproved pose.can_edit)}}
                     {{#if (not pose.editActive)}}
-                    <a href="#" {{action 'editScenePose' pose}}><i class="fa fa-edit" aria-hidden="true">
-                      {{#bs-tooltip placement="left"}}Edit pose.{{/bs-tooltip}}
-                    </i></a>
+                    <a href="#" {{action 'editScenePose' pose}}>
+                      {{tooltip-icon position='left' message='Edit Pose' icon='fa fa-edit'}}
+                    </a>
                     {{#if pose.can_delete}}
-                    <a href="#" {{action (mut confirmDeleteScenePose) pose}}><i class="fa fa-trash" aria-hidden="true">
-                      {{#bs-tooltip placement="left"}}Delete pose.{{/bs-tooltip}}
-                    </i></a>
+                    <a href="#" {{action (mut confirmDeleteScenePose) pose}}>
+                      {{tooltip-icon position='left' message='Delete Pose' icon='fa fa-trash'}}                      
+                    </a>
                     {{/if}}
                     {{/if}}
                   {{/if}}
@@ -62,18 +59,18 @@
             {{else}}
                 <div class="scene-pose-header">		
                   {{#if pose.restarted_scene_pose}}
-                      <img class="small-profile-icon {{icon-class}}" src="/game/uploads/theme_images/noicon.png" />
+                      <img alt="System Profile Icon"  class="small-profile-icon {{icon-class}}" src="/game/uploads/theme_images/noicon.png" >
                       Scene Restarted
                   {{else}}
-                      {{#link-to "char" pose.char.name}}
+                      <a href="#" {{action (mut characterCard) pose.char.name}}>
                           {{#if pose.char.icon}}
-                          <img class="small-profile-icon {{icon-class}}" src="/game/uploads/{{pose.char.icon}}" />
+                          <img alt="{{pose.char.name}}'s icon" class="small-profile-icon {{icon-class}}" src="/game/uploads/{{pose.char.icon}}" >
                           {{else}}
-                          <img class="small-profile-icon {{icon-class}}" src="/game/uploads/theme_images/noicon.png" />
+                          <img alt="{{pose.char.name}}'s icon" class="small-profile-icon {{icon-class}}" src="/game/uploads/theme_images/noicon.png" >
                           {{/if}}
-                      {{/link-to}}
-
-                      {{#link-to "char" pose.char.name}} {{pose.char.name}} {{/link-to}}
+                          
+                          {{pose.char.name}}
+                      </a>
                     {{/if}}
                 </div>
                  {{#if pose.editActive}}
@@ -87,6 +84,7 @@
                     <div class="clearfix"></div>
                     
                  {{else}}
+                   
                      {{#if pose.is_setpose}}
                         <div class="scene-set-pose">
                         {{{ansi-format text=pose.pose}}}
@@ -98,6 +96,10 @@
                         </div>
                     {{else}}        
                         <div class="scene-pose">	
+                          {{#if pose.place_name}}
+                            <b>At {{pose.place_name}}</b>
+                          {{/if}}
+                          
                             {{{ansi-format text=pose.pose}}}
                         </div>
                     {{/if}}
@@ -122,136 +124,227 @@
         This scene has changed status since you opened it.  Please reload the page.
       </div>
 
+    {{else if (not isApproved)}}
+      <div class="alert alert-warning">You must be approved to join a scene.</div>
+      
     {{else}}
-    
-      {{#if isApproved}}
 
           {{#if (not scene.completed)}}
           
-            {{cmd-box value=scenePose rows=6 allowMultiLine=true onEnter=(action "addPose" "pose")}}
-            
             {{pose-order poseOrder=scene.pose_order playerName=playerName}}
-          {{/if}}
           
-          
-        
-      {{else}}
-           <p>You must be approved to join a scene.</p>
-      {{/if}}
+            {{cmd-box value=scenePose rows=6 allowMultiLine=true class="scene-pose-box" onEnter=(action "addPose" poseType.id)}}
+
+           {{/if}}
+           
+ <div class="row pose-ui">
     
-    
-    
-      <div class="row">
-          <div class="col col-xs-12">
+         <div class="col col-sm-6 col-xs-12 scene-buttons">
+             {{#if (not scene.completed)}}                
 
-              <ul class="nav navbar-nav">    
-                  <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+             <div class="pose-buttons">
+                 <button {{action 'addPose' poseType.id}} class="btn btn-primary">Add {{poseType.title}}</button>
+                 <button {{action 'addPose' 'ooc'}} class="btn btn-default">Add OOC</button>
+                 
+                 {{#if txtExtraInstalled}}
+                   {{live-scene-txt scenePose=scenePose scene=scene}}
+                 {{/if}}
+                
+             {{live-scene-custom-scenepose scenePose=scenePose scene=scene}}
+             </div>
+                
+             <div class="scene-pose-select">
+                 {{#power-select selected=poseType options=poseTypes searchField='title' onchange=(action "poseTypeChanged") as |poseType|}}
+                     {{poseType.title}}
+                 {{/power-select}}
+             </div>
+                
+             <div class="scene-char-select" >
+                 {{#power-select selected=poseChar options=scene.poseable_chars searchField='name' onchange=(action "poseCharChanged") as |poseChar|}}
+                     {{char-icon-tiny char=poseChar}}
+                 {{/power-select}}
+             </div>
+             {{/if}}
+            
+         </div>
+                
+         <div class="col col-sm-6 col-xs-12 scene-dropdowns">
+                
+             {{#if (not scene.completed)}}
+                 <ul class="nav scene-menu">    
+                     <li class="dropdown">
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                             <span class="btn btn-default" href="#">Play <span class="caret"></span></span>
+                         </a>
+                         <ul class="dropdown-menu">
+                             {{#if scene.can_edit}}
+                                 <li><a href="#" {{action (mut selectLocation) true}}>Change Location</a></li>
+                             {{/if}}
 
-                    <span class="btn btn-default" href="#" role="button">Scene Menu <span class="caret"></span></span> </a>
-                    <ul class="dropdown-menu">
+                             {{live-scene-places scene=scene}}
 
-                      {{#if scene.can_edit}}
-                      <li>{{#link-to 'scene-edit' scene.id}}Edit Scene{{/link-to}}</li>
-                      <li><a href="#" {{action (mut selectLocation) true}}>Change Location</a></li>
-                      {{/if}}
+                             <li role="separator" class="divider"></li>
+                        
+                             <li><a href="#" {{action (mut managePoseOrder) true}}>Manage Pose Order</a></li>
                     
-                      {{#if isApproved}}
-                        {{#if (not scene.completed)}}
-                    
-                        {{#if rollEnabled}}
-                        <li><a href="#" {{action (mut selectSkillRoll) true}}>Add Roll</a></li>
-                        {{/if}}
-                    
-                        <li><a href="#" {{action 'cookies'}}>Give Cookies</a></li>
-                     
-                         <li role="separator" class="divider"></li>
+                             {{#if scene.fs3_enabled}}
+                                 {{live-scene-fs3 abilities=abilities scene=scene}}
+                             {{/if}}
+                             
+                             {{#if cookiesExtraInstalled}}
+                               {{live-scene-cookies scene=scene}}
+                             {{/if}}                             
+                          
+                             {{live-scene-custom-play scene=scene abilities=abilities}}
+                          
+                         </ul>
+                     </li>
+                 </ul>         
+             {{/if}}
 
-                         <li><a href="#" {{action 'changeSceneStatus' 'stop'}}>Stop Scene</a></li> 
-                         {{else}}
-                         <li><a href="#" {{action 'changeSceneStatus' 'restart'}}>Restart Scene</a></li> 
-                         <li><a href="#" {{action 'changeSceneStatus' 'share'}}>Share Scene</a></li> 
+             <ul class="nav scene-menu">    
+                 <li class="dropdown">
+                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                         <span class="btn btn-default" href="#">Manage <span class="caret"></span></span>
+                     </a>
+                     <ul class="dropdown-menu">
+                         {{#if scene.can_edit}}
+                             <li>{{#link-to 'scene-edit' scene.id}}Edit Scene{{/link-to}}</li>
+                             {{#if (not scene.completed)}}
+                                 <li><a href="#" {{action 'changeSceneStatus' 'stop'}}>Stop Scene</a></li> 
+                             {{else}}
+                                 <li><a href="#" {{action 'changeSceneStatus' 'restart'}}>Restart Scene</a></li> 
+                                 <li><a href="#" {{action 'changeSceneStatus' 'share'}}>Share Scene</a></li> 
+                             {{/if}}
+   
+                             {{#if scene.can_delete}}
+                                 <li role="separator" class="divider"></li>
+                                 <li><a href="#" {{action (mut confirmDeleteScene) true}}>Delete Scene</a></li> 
+                             {{/if}}
                          {{/if}}
-                       {{/if}}
-                   
-                   
-                    <li>{{#link-to 'scene-download' scene.id}}Download Scene{{/link-to}}</li> 
+ 
+                         <li>{{#link-to 'scene-download' scene.id}}Download Scene{{/link-to}}</li> 
+                         <li><a href="#" {{action (mut confirmReportScene) true}}>Report Abuse</a></li> 
+                     </ul>
+                 </li>
+             </ul>
+         </div>
 
-                    </ul>
-                  </li>
-              </ul>
-        
-              {{#if isApproved}}
-        
-                <div class="pull-right">
-                
-                  {{#if (not scene.completed)}}
-                  <button {{action 'addPose' 'setpose'}} class="btn btn-default">Add Scene Set</button>
-                  <button {{action 'addPose' 'gm'}} class="btn btn-default">Add GM Pose</button>
-                  <button {{action 'addPose' 'ooc'}} class="btn btn-default">Add OOC Comment</button>
-                  <button {{action 'addPose' 'pose'}} class="btn btn-primary">Add Pose</button>
-
-
-                  {{/if}}
-        
-                
-        
-                </div>
-        
-              {{/if}}
-    
-
-           </div>
-       </div>
+     </div>        
      
     {{/if}}          
 
-
     {{flash-messages}}
 
-    {{#if (and scene.can_edit selectLocation)}}
-    <div class="row">
-        <div class="col col-xs-4">
-           <p>
-                {{#power-select selected=newLocation options=locations onchange=(action "locationSelected") as |location|}}
-              {{location}}
-            {{/power-select}}
-        
-            <div class="btn btn-default" {{action 'changeLocation'}}>Select Location</div>
-        </p>
-        </div>
-    </div>
-    {{/if}}
-
-        <hr/>
+        <hr>
 
 
+    {{#bs-modal-simple
+      title="Confirm Delete"
+      closeTitle="Cancel"
+      submitTitle="Confirm"
+      size=null
+      fade=false
+      open=confirmDeleteScenePose
+      onSubmit=(action "deleteScenePose")
+      onHide=(action (mut confirmDeleteScenePose) null)}}
+      You're about to delete this scene pose. This cannot be undone.  Are you sure?
+    {{/bs-modal-simple}}
+    
+    {{#bs-modal-simple
+      title="Confirm Report"
+      closeTitle="Cancel"
+      submitTitle="Confirm"
+      size=null
+      fade=false
+      open=confirmReportScene
+      onSubmit=(action "reportScene")
+      onHide=(action (mut confirmReportScene) null)}}
+      <p>If someone is behaving badly in a scene, you can bring it to the game admin's attention - along with an automatic, verified log of the scene (including OOC chat and any previously-edited or deleted poses).  </p>
+      
+      <p><b>Reason for Report:</b></p>
+      
+      {{textarea value=reportReason cols="40" rows=5}}
+      
+    {{/bs-modal-simple}}
+    
     {{#bs-modal-simple
         title="Confirm Delete"
         closeTitle="Cancel"
         submitTitle="Confirm"
         size=null
         fade=false
-        open=confirmDeleteScenePose
-        onSubmit=(action "deleteScenePose")
-        onHide=(action (mut confirmDeleteScenePose) null)}}
-        You're about to delete this scene pose. This cannot be undone.  Are you sure?
-      {{/bs-modal-simple}}
-  
-      {{#bs-modal-simple
-          title="Select a Skill to Roll"
-          closeTitle="Cancel"
-          submitTitle="Roll"
-          size=null
-          fade=false
-          open=selectSkillRoll
-          onSubmit=(action "addSceneRoll")
-          onHide=(action (mut selectSkillRoll) null)}}
-          <select onchange={{action (mut rollString) value="target.value"}}>
-            {{#each abilities as |ability|}}
-              <option value={{ability}}>{{ability}}</option>
-            {{/each}}
-          </select>
-          {{input type="text" size=25 id="rollString" enter="addSceneRoll" value=rollString}}
+        open=confirmDeleteScene
+        onSubmit=(action "deleteScene")
+        onHide=(action (mut confirmDeleteScene) null)}}
+        You're about to delete this scene. This cannot be undone.  Are you sure?
+    {{/bs-modal-simple}}
+
+    {{#bs-modal-simple
+        title="Change the Scene Location"
+        closeTitle="Cancel"
+        submitTitle="Select"
+        size=null
+        fade=false
+        open=selectLocation
+        onSubmit=(action "changeLocation")
+        onHide=(action (mut selectLocation) null)}}
+        <p>Select a location from the list or type one into the bottom box.</p>
+        <p>
+          {{#power-select selected=newLocation options=locations onchange=(action "locationSelected") as |location|}}
+        {{location}}
+      {{/power-select}}
+       <b>Custom Location:</b> {{input type="text" size=25 id="newLocation" enter=(action "changeLocation")  value=newLocation}}
+         </p>
+    {{/bs-modal-simple}}
+    
+    {{#bs-modal-simple
+        title="Manage Pose Order"
+        closeTitle="Cancel"
+        size=null
+        fade=false
+        open=managePoseOrder
+        onHide=(action (mut managePoseOrder) null)}}
+        
+        <table>
+        {{#each scene.pose_order as |po|}}
+        <tr>
+        <td>
+        {{po.name}} 
+        </td>
+        <td>
+           <a href="#" {{action 'dropPoseOrder' po.name}}> {{tooltip-icon position='left' message='Skip Turn' icon='fa fa-times-circle'}} </a>
+        </td>
+        </tr>
+        {{/each}}
+      </table>
+      
+      <br>
+      
+      {{#if (eq scene.pose_order_type '3-per')}}
+        Switch to regular pose order: <a href="#" {{action 'switchPoseOrderType' 'normal'}}>
+          {{tooltip-icon position='left' message='Regular Order' icon='fa fa-user'}}</a>
+      {{else}}
+        Switch to 3-per pose order: <a href="#" {{action 'switchPoseOrderType' '3-per'}}>
+          {{tooltip-icon position='left' message='3-Per Order' icon='fa fa-users'}}
+        </a>
+      {{/if}}
+    {{/bs-modal-simple}}
+    
+    {{#bs-modal-simple
+      title=characterCard
+      closeTitle="Close"
+      size=null
+      fade=false
+      open=characterCard
+      onHide=(action (mut characterCard) null)}}
+      
+      {{#if scene.use_custom_char_cards}}
+        {{char-card-custom char=characterCardInfo}}
+      {{else}}
+        {{char-card char=characterCardInfo}}
+      {{/if}}
+      
+    {{/bs-modal-simple}}
+    
           
-        {{/bs-modal-simple}}

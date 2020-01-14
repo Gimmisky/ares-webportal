@@ -1,4 +1,4 @@
-{{title model.name}}
+{{title model.char.name}}
 
     <ul class="nav nav-tabs">
         <li class="active"><a data-toggle="tab" href="#general">General</a></li>
@@ -14,7 +14,7 @@
 
         <div id="general" class="tab-pane fade in active">
             
-            {{#each-in model.demographics as |key demo|}}
+            {{#each-in model.char.demographics as |key demo|}}
             <div class="form-group row">
                 <div class="col-sm-3">
                         <b>{{demo.name}}</b> 
@@ -22,7 +22,7 @@
                 <div class="col-sm-9">
                     {{#if (eq demo.name 'Gender') }}
                         
-                        {{#power-select selected=model.demographics.gender searchField="value" options=genders onchange=(action "genderChanged") as |gender|}}
+                        {{#power-select selected=model.char.demographics.gender searchField="value" options=genders onchange=(action "genderChanged") as |gender|}}
                           {{gender.value}}
                         {{/power-select}}
                         
@@ -35,23 +35,11 @@
             
             <div class="form-group row">
                 <div class="col-sm-3">
-                        <b>Gallery</b>
-                </div>
-                
-                <div class="col-sm-9">
-                    {{#power-select-multiple selected=model.gallery searchField="name" options=model.files onchange=(action "galleryChanged") as |file|}}
-                    {{file.name}}
-                    {{/power-select-multiple}}
-                </div>
-            </div>
-            
-            <div class="form-group row">
-                <div class="col-sm-3">
                         <b>Profile Image</b>
                 </div>
                 
                 <div class="col-sm-9">
-                    {{#power-select selected=model.profile_image allowClear=true searchField="name" options=model.files onchange=(action "profileImageChanged") as |file|}}
+                    {{#power-select selected=model.char.profile_image allowClear=true searchField="name" options=model.char.files onchange=(action "profileImageChanged") as |file|}}
                     {{file.name}}
                     {{/power-select}}
                 </div>
@@ -63,9 +51,26 @@
                 </div>
                 
                 <div class="col-sm-9">
-                    {{#power-select selected=model.profile_icon allowClear=true searchField="name" options=model.files onchange=(action "profileIconChanged") as |file|}}
+                    {{#power-select selected=model.char.profile_icon allowClear=true searchField="name" options=model.char.files onchange=(action "profileIconChanged") as |file|}}
                     {{file.name}}
                     {{/power-select}}
+                </div>
+            </div>
+            
+            <div class="form-group row">
+                <div class="col-sm-3">
+                        <b>Profile Gallery</b>
+                </div>
+                
+                <div class="col-sm-9">
+                  
+                  <div class="profile-gallery-input">
+                  {{textarea value=model.char.profile_gallery cols="80" rows=3}}
+                  
+                    <p class="hint">List image files in the order you want them shown (<code>folder/file1.jpg /folder/file2.jpg</code> etc.), or leave blank to just show all images from your character's folder.</p>
+                    
+                    </div>
+                    
                 </div>
             </div>
             
@@ -75,7 +80,7 @@
                 </div>
                 
                 <div class="col-sm-9">
-                    {{input type="text" size=25 value=model.tags}}
+                    {{input type="text" size=50 value=model.char.tags}}
                     
                 </div>
             </div>
@@ -86,45 +91,69 @@
                 </div>
                 
                 <div class="col-sm-9">
-                      {{input type='checkbox' checked=model.bg_shared}}
+                      {{input type='checkbox' checked=model.char.bg_shared}}
                 </div>
             </div>
+            
+            
+            <div class="form-group row">
+                <div class="col-sm-3">
+                        <b>Last Will</b>
+                </div>
+                
+                <div class="col-sm-9">
+                      {{markdown-editor text=model.char.lastwill}}
+                </div>
+            </div>
+            
+            
             
             
         </div>
       
         <div id="profile" class="tab-pane fade in">
            
-           {{#each model.profile as |profile|}}
+           {{#each model.char.profile as |profile|}}
            <p>
            {{input type="text" size=25 value=profile.name placeholder="Enter section name."}}
-           <button class="btn btn-default" {{action 'removeProfile' profile.key}}><i class="fa fa-trash" aria-hidden="true"></i></button>
+           <button class="btn btn-default" {{action 'removeProfile' profile.key}}><i class="fa fa-trash" aria-label="Remove Section"></i></button>
            </p>
            {{markdown-editor text=profile.text}}
-            <hr/>
+            <hr>
            {{/each}}
            
-           <button class="btn btn-default" {{action 'addProfile'}}>Add Profile Section <i class="fa fa-plus" aria-hidden="true"></i></button>
+           <button class="btn btn-default" {{action 'addProfile'}}>Add Profile Section <i class="fa fa-plus" aria-label="Add Section"></i></button>
         </div>
     
         <div id="relationships" class="tab-pane fade in">
-          
-            {{#each model.relationships as |relationship|}}
+            <p><b>Category Order:</b> {{input type="text" size=50 value=model.char.relationships_category_order placeholder="Order (Optional)."}}</p>
+            <p class="hint">List categories, separated by commas, in the order you want them to appear on your relationship display.</p>
+            <hr>
+
+            {{#each model.char.relationships as |relationship|}}
             <p>
             {{input type="text" size=25 value=relationship.name placeholder="Enter name."}}
-            <button class="btn btn-default" {{action 'removeRelationship' relationship.key}}><i class="fa fa-trash" aria-hidden="true"></i></button>
+            
+            Category: {{input type="text" size=25 value=relationship.category placeholder="Enter category."}}
+                        
+            <button class="btn btn-default" {{action 'removeRelationship' relationship.key}}><i class="fa fa-trash" aria-label="Remove Relationship"></i></button>
             </p>
             
             <p>
             
-            Category: {{input type="text" size=25 value=relationship.category placeholder="Enter category."}}
             Order: {{input type="text" size=25 value=relationship.order placeholder="Order (Optional)."}}
+                        
+            Off-Game NPC: {{input type='checkbox' checked=relationship.is_npc}} 
+            
+            {{#if relationship.is_npc}}
+            NPC Image: {{input type="text" size=25 value=relationship.npc_image placeholder="folder/filename.ext (Optional)."}}
+            {{/if}}
             
             </p>
             
             {{markdown-editor text=relationship.text}}
             
-            <hr/>
+            <hr>
             {{/each}}
            
             <button class="btn btn-default" {{action 'addRelationship'}}>Add Relationship <i class="fa fa-plus" aria-hidden="true"></i></button>
@@ -133,19 +162,19 @@
         </div>
       
         <div id="hooks" class="tab-pane fade in">
-          {{markdown-editor text=model.rp_hooks}}
+          {{markdown-editor text=model.char.rp_hooks}}
         </div>
       
         <div id="files" class="tab-pane fade in">
-            <div class="cg-tip">Files for your character page need to be in a folder matching your character's name.  They will show up below and be accessible in the gallery and profile image selection lists.</div>
-            <hr/>
+            <div class="cg-tip">Files for your character page need to be in a folder matching your character's name.  They will show up in the gallery and profile image selection lists.</div>
+            <hr>
         
             <div>
-            {{#each model.files as |file|}}
+            {{#each model.char.files as |file|}}
             
             <div class="thumbnail-gallery">
             {{#link-to 'file' file.folder file.name}}
-            {{file.path}} <img src="/game/uploads/{{file.path}}" class="thumbnail"/> 
+            {{file.path}} <img src="/game/uploads/{{file.path}}" alt="{{file.name}}" class="thumbnail">
             {{/link-to}}
             </div>
             {{/each}}
@@ -154,7 +183,7 @@
         
             <p>{{#link-to 'files'}}All Files{{/link-to}}</p>
     
-            {{file-uploader folder=model.name uploaded=(action "fileUploaded")}}
+            {{file-uploader folder=model.char.name uploaded=(action "fileUploaded")}}
         </div>
       
           
@@ -166,7 +195,7 @@
         <div class="col col-xs-12">
             <div class="pull-right">
     
-                <p> {{#link-to 'char' model.name class="btn btn-default"}}Cancel{{/link-to}}  
+                <p> {{#link-to 'char' model.char.name class="btn btn-default"}}Cancel{{/link-to}}  
                     <button class="btn btn-primary" {{action 'save'}} >Save</button>
                 </p>
     

@@ -1,3 +1,4 @@
+import $ from "jquery"
 import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import ApplicationRouteMixin from 'ember-simple-auth/mixins/application-route-mixin';
@@ -13,20 +14,26 @@ export default Route.extend(ApplicationRouteMixin, ReloadableRoute, {
     headData: service(),
   
     afterModel(model) {
+      try {
         this.set('headData.mushName', model.get('game.name'));
-        this.set('headData.portalUrl', this.get('gameApi').portalUrl());
-        this.set('headData.mushDesc', model.get('game.description'));
+        this.set('headData.portalUrl', this.gameApi.portalUrl());
+        this.set('headData.mushDesc', model.get('game.description'));  
+        }
+        catch(error) {
+          // Don't do anything here.
+        }
       },
       
     doReload: function() {
         this.loadModel().then( newModel => {
             this.controllerFor('application').set('sidebar', newModel);
             this.controllerFor('application').set('refreshSidebar', newModel.timestamp);
+            this.gameSocket.updateNotificationBadge(newModel.notification_count);
         });        
     },
     
     loadModel: function() {
-        let api = this.get('gameApi');
+        let api = this.gameApi;
         return api.requestOne('sidebarInfo')
         .then( (response) => {
             if (response.error) {
@@ -35,7 +42,7 @@ export default Route.extend(ApplicationRouteMixin, ReloadableRoute, {
             response['socketConnected'] = this.get('gameSocket.connected');
             
             if (response.token_expiry_warning) {
-              this.get('flashMessages').warning(`Your login expires today (in ${response.token_expiry_warning}). You should log out and back in before that happens so you don't lose any work.`);
+              this.flashMessages.warning(`Your login expires today (in ${response.token_expiry_warning}). You should log out and back in before that happens so you don't lose any work.`);
             }
             return response;
         })
@@ -45,11 +52,11 @@ export default Route.extend(ApplicationRouteMixin, ReloadableRoute, {
     },
     
     model: function() {       
-        let gameSocket = this.get('gameSocket');
+        let gameSocket = this.gameSocket;
         gameSocket.checkSession(this.get('session.data.authenticated.id'));
       
         $(window).focus( () => {
-            this.get('favicon').changeFavicon(false);                    
+            this.favicon.changeFavicon(false);                    
         });
         
         return this.loadModel();
@@ -60,7 +67,7 @@ export default Route.extend(ApplicationRouteMixin, ReloadableRoute, {
     },
     
     sessionInvalidated: function() { 
-        this.get('flashMessages').info('You have been logged out.');
+        this.flashMessages.info('You have been logged out.');
         this.transitionTo('/');
         this.refresh();
     },
@@ -77,11 +84,11 @@ export default Route.extend(ApplicationRouteMixin, ReloadableRoute, {
     },
 
     actions: {
-        willTransition() {
+        didTransition() {
            this.doReload();
         },
         error(error) {
-            this.get('gameApi').reportError({ message: error });
+            this.gameApi.reportError({ message: error });
         }
     }
 });

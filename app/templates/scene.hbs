@@ -1,11 +1,17 @@
 {{title pageTitle}}
+<a name="top"></a>
+
 <h1>{{model.icdate}} - {{model.title}}</h1>
         
 <div class="row log-wrap">
        
     <div class="log-box">
        
-        <p>{{model.summary}}</p>
+        <p>{{{ansi-format text=model.summary}}}</p>
+
+        {{#if model.content_warning}}
+        <div class="alert alert-danger"><b>Content Warning:</b> {{model.content_warning}}</div>
+        {{/if}}
 
         <p><b>Date:</b> {{model.icdate}}</p>
 
@@ -44,12 +50,12 @@
          
         {{#if isApproved}}
             {{#if model.has_liked}}
-            <button {{action 'like' false}} class="badge badge-likes"><i class="fa fa-heart" area-hidden="true"></i> {{model.likes}}</button>
+            <button {{action 'like' false}} class="badge badge-likes"><i class="fa fa-heart" aria-label="Liked"></i> {{model.likes}}</button>
             {{else}}
-            <button {{action 'like' true}} class="badge badge-likes"><i class="far fa-heart" area-hidden="true"></i> {{model.likes}}</button>
+            <button {{action 'like' true}} class="badge badge-likes"><i class="far fa-heart" area-hidden="Like"></i> {{model.likes}}</button>
             {{/if}}
         {{else}}
-            <span class="badge badge-likes"><i class="far fa-heart" area-hidden="true"></i> {{model.likes}}</span>
+            <span class="badge badge-likes"><i class="far fa-heart" area-label="Likes"></i> {{model.likes}}</span>
         {{/if}}
         
          </div>
@@ -58,10 +64,10 @@
     
     <div class="log-participants-box">
         
-    {{#each model.participants as |p|}}
-      {{#if (not p.is_ooc)}}
+    {{#each model.participants as |participant|}}
+      {{#if (not participant.is_ooc)}}
         <div class="profile-gallery">    
-            {{char-icon char=p}}
+            {{char-icon char=participant}}
         </div>
       {{/if}}
     {{/each}}
@@ -73,7 +79,7 @@
 
 </div>
 
-<p><a href="#bottom"><i class="fas fa-chevron-circle-down"></i> Jump to End</a></p>
+<p><a href="#bottom"><i class="fas fa-chevron-circle-down"></i> Jump to Bottom</a></p>
 
 
 <div class="scene-log">
@@ -82,7 +88,10 @@
     
 <a name="bottom"></a>
 
-<br/>
+<br>
+
+<p><a href="#top"><i class="fas fa-chevron-circle-up"></i> Jump to Top</a></p>
+
 <p>
     <b>Tags:</b>  
     {{#each model.tags as |tag|}}
@@ -101,14 +110,17 @@
                     <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 
-                      <span class="btn btn-default" href="#" role="button">Scene Menu <span class="caret"></span></span> </a>
+                      <span class="btn btn-default" href="#">Scene Menu <span class="caret"></span></span> </a>
                       <ul class="dropdown-menu">
 
-                      {{#if model.can_edit}}
+                        {{#if model.can_edit}}
 
                         <li>{{#link-to 'scene-edit' model.id}}Edit Scene{{/link-to}}</li>
                         <li><a href="#" {{action 'unshareScene'}}>Unshare Scene</a></li>
+                        
+                        {{#if model.can_delete}}
                         <li><a href="#" {{action (mut confirmDelete) true}}>Delete Scene</a></li>
+                        {{/if}}
                          
                          <li role="separator" class="divider"></li>
                        {{/if}}

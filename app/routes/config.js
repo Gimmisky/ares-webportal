@@ -3,13 +3,13 @@ import { inject as service } from '@ember/service';
 import ReloadableRoute from 'ares-webportal/mixins/reloadable-route';
 import RestrictedRoute from 'ares-webportal/mixins/restricted-route';
 import RouteResetOnExit from 'ares-webportal/mixins/route-reset-on-exit';
-import JsYaml from "npm:js-yaml";
+import JsYaml from "js-yaml";
 
 export default Route.extend(ReloadableRoute, RouteResetOnExit, RestrictedRoute, {
     gameApi: service(),
     
     model: function(params) {
-        let api = this.get('gameApi');
+        let api = this.gameApi;
         return api.requestOne('getConfig', { file: params['file']})
         .then(model => {
           
@@ -20,10 +20,10 @@ export default Route.extend(ReloadableRoute, RouteResetOnExit, RestrictedRoute, 
             return model;
           }
           else {
-            this.get('flashMessages').danger('There is a problem with this config file.  Check your formatting.');
+            this.flashMessages.danger('There is a problem with this config file.  Check your formatting.');
             this.transitionTo('textfile', 'config', model.get('file'));
           }
-        })
+        });
        
     }
 });

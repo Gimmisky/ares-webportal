@@ -1,3 +1,5 @@
+import { htmlSafe } from '@ember/template';
+import { computed } from '@ember/object';
 import Component from '@ember/component';
 
 export default Component.extend({
@@ -5,14 +7,14 @@ export default Component.extend({
   currentValue: 0,
   tagName: '',
   
-  progress: function() {
-    if (this.get('maxValue') === 0) {
+  progress: computed('currentValue', function() {
+    if (this.maxValue === 0) {
       return 0;
     }
-    return 100.0 * this.get('currentValue') / this.get('maxValue');
-  }.property('currentValue'),
+    return 100.0 * this.currentValue / this.maxValue;
+  }),
   
-  widthStyle: function() {
-    return Ember.String.htmlSafe(`width: ${this.get('progress')}%;`);
-  }.property('progress')
+  widthStyle: computed('progress', function() {
+    return htmlSafe(`width: ${this.progress}%;`);
+  })
 });

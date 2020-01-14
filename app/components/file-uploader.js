@@ -1,35 +1,44 @@
+import EmberObject, { computed } from '@ember/object';
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
 
 export default Component.extend({
-    files: [],
+    files: null,
     folder: '',
+    allowMulti: true,
+    lockProperties: false,
     gameApi: service(),
     flashMessages: service(),
     
-    didInsertElement: function() {
-        this.set('files', []);
+    init: function() {
+      this._super(...arguments);
+      this.set('files', []);
     },
-    
-    fileCount: function() {
+  
+    fileCount: computed('files', function() {
         return this.get('files.length');
-    }.property('files'),
+    }),
     
-    showSelector: function() {
-        return !this.get('fileCount');
-    }.property('fileCount'),
+    showSelector: computed('fileCount', function() {
+        return !this.fileCount;
+    }),
     
     actions: {
         filesSelected: function(e) {
             let selectedFiles = e.target.files;
+            let fileCount = selectedFiles.length;
+            if (fileCount > 1 && !this.allowMulti) {
+              this.flashMessages.danger('You can only upload a single file.');
+              fileCount = 1;
+            }
             let info = [];
-            for (var i = 0; i < selectedFiles.length; i++) {
+            for (var i = 0; i < fileCount; i++) {
                 let file = selectedFiles.item(i);
-                let fileInfo = Ember.Object.create( {
+                let fileInfo = EmberObject.create( {
                     file: file,
                     name: file.name,
                     data: null,
-                    folder: this.get('folder').toLowerCase(),
+                    folder: this.folder.toLowerCase(),
                     sizeKb: Math.round(file.size / 1000),
                     url: URL.createObjectURL(file)
                 });
@@ -44,7 +53,7 @@ export default Component.extend({
         },
         
         removeFile: function(file) { 
-            let newFiles = this.get('files');
+            let newFiles = this.files;
             let filteredFiles = newFiles.filter(f => f != file);
             this.set('files', filteredFiles);
         },
@@ -54,10 +63,10 @@ export default Component.extend({
         },
         
         uploadFile: function(file) {
-            let api = this.get('gameApi');
+            let api = this.gameApi;
             
             if (!file.data) {
-                this.get('flashMessages').danger('That file is not ready for upload yet.  Give it a few more seconds.');
+                this.flashMessages.danger('That file is not ready for upload yet.  Give it a few more seconds.');
                 return;
             }
             
@@ -81,10 +90,7 @@ export default Component.extend({
                     file.set('upload_message', 'Upload Succeeded!');                    
                     file.set('upload_success', true);
                     
-                    let any_left = this.get('files').some(f => !f.upload_success);
-                    if (!any_left) {
-                        this.sendAction('uploaded', folder, name);
-                    }
+                    this.sendAction('uploaded', response.folder, response.name);
                 }
             });
         }

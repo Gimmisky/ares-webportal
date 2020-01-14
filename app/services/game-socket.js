@@ -1,3 +1,4 @@
+import $ from "jquery"
 import Service from '@ember/service';
 import { inject as service } from '@ember/service';
 
@@ -10,26 +11,29 @@ export default Service.extend({
     windowVisible: true,
     socket: null,
     charId: null,
-    chatCallback: null,
-    jobsCallback: null,
-    sceneCallback: null,
+    callbacks: null,
     connected: false,
-    
+
+    init: function() {
+      this._super(...arguments);
+      this.set('callbacks', {});
+    },
+      
     socketUrl() {
       var protocol = aresconfig.use_https ? 'wss' : 'ws';
       return `${protocol}://${aresconfig.host}:${aresconfig.websocket_port}/websocket`;
     },
     
     checkSession(charId) {
-        let socket = this.get('socket');
-        if (!socket || this.get('charId') != charId) {
+        let socket = this.socket;
+        if (!socket || this.charId != charId) {
             this.sessionStarted(charId);
         }
     },
     
     highlightFavicon() {
-      if (!this.get('windowVisible')) {
-        this.get('favicon').changeFavicon(true);
+      if (!this.windowVisible) {
+        this.favicon.changeFavicon(true);
       }
     },
     
@@ -40,9 +44,9 @@ export default Service.extend({
           alertify.notify(msg, type, timeOutSecs);
         }
              
-       if (!this.get('windowVisible')) {
-            this.get('favicon').changeFavicon(true);
-            if (this.get('browserNotification') && this.get('browserNotification.permission') === "granted") {
+       if (!this.windowVisible) {
+            this.favicon.changeFavicon(true);
+            if (this.browserNotification && this.get('browserNotification.permission') === "granted") {
                 try {
                   var doc = new DOMParser().parseFromString(msg, 'text/html');
                   var cleanMsg =  doc.body.textContent || "";
@@ -64,7 +68,7 @@ export default Service.extend({
     },
     
     sessionStarted(charId) {
-        let socket = this.get('socket');
+        let socket = this.socket;
         this.set('charId', charId);
         
         if (socket) {
@@ -90,8 +94,8 @@ export default Service.extend({
             };            
             this.set('browserNotification', window.Notification || window.mozNotification || window.webkitNotification);
         
-            if (this.get('browserNotification')) {
-                this.get('browserNotification').requestPermission();
+            if (this.browserNotification) {
+                this.browserNotification.requestPermission();
             }
         }
         catch(error)
@@ -115,11 +119,11 @@ export default Service.extend({
     sendCharId() {
       let cmd = {
         'type': 'identify',
-        'data': { 'id': this.get('charId') }
+        'data': { 'id': this.charId }
       };
       let json = JSON.stringify(cmd);
       try {
-        let socket = this.get('socket');
+        let socket = this.socket;
         if (socket) {
           socket.send(json); 
         }
@@ -128,6 +132,14 @@ export default Service.extend({
         // Socket closed already.
       }
        
+    },
+    
+    removeCallback( notification ) {
+      delete this.callbacks[notification];
+    },
+    
+    setupCallback( notification, method ) {
+      this.callbacks[notification] = method;
     },
     
     handleConnect() {
@@ -152,6 +164,11 @@ export default Service.extend({
     updateJobsBadge(count) {
       var job_badge = $('#jobBadge');
       job_badge.text(count);
+    },
+    
+    updateNotificationBadge(count) {
+      var notification_badge = $('#notificationBadge');
+      notification_badge.text(count);
     },
     
     handleMessage(self, evt) {
@@ -181,40 +198,25 @@ export default Service.extend({
         if (!recipient || recipient === self.get('charId')) {
             var formatted_msg = ansi_up.ansi_to_html(data.args.message, { use_classes: true });
             var notify = true;
-            if (notification_type == "new_mail") {
-              var mail_badge = $('#mailBadge');
-              var mail_count = mail_badge.text() || '0';
-              mail_count = parseInt( mail_count );
-              mail_badge.text(mail_count + 1);                
+            
+            if (this.callbacks[notification_type]) {
+              this.callbacks[notification_type](notification_type, data.args.message, data.args.timestamp);
+              notify = false;
             }
-            else if (notification_type == "job_update") {
-                var job_badge = $('#jobBadge');
-                var job_count = job_badge.text() || '0';
-                job_count = parseInt( job_count );
-                job_badge.text(job_count + 1);
-                
-                if (this.get('jobsCallback')) {
-                    this.get('jobsCallback')(data.args.message);
-                }
+            
+            if (notification_type == "job_update" ||
+                notification_type == "new_forum_activity" ||
+                notification_type == "new_chat" || 
+                notification_type == "new_page" ||
+                notification_type == "new_scene_activity" ||
+                notification_type == "combat_activity" ||
+                notification_type == "new_combat_turn" || 
+                notification_type == "manage_activity") {
                 notify = false;
             }
-            else if (notification_type == "new_chat") {
-                if (this.get('chatCallback')) {
-                    this.get('chatCallback')(data.args.message, data.args.timestamp);
-                }
-                notify = false;
-            }
-            else if (notification_type == "new_page") {
-                if (this.get('chatCallback')) {
-                    this.get('chatCallback')(data.args.message, data.args.timestamp);
-                }
-                notify = false;
-            }
-            else if (notification_type == "new_scene_activity") {
-                if (this.get('sceneCallback')) {
-                    this.get('sceneCallback')(data.args.message, data.args.timestamp);
-                }
-                notify = false;
+            else if (notification_type == "notification_update") {
+              this.updateNotificationBadge(data.args.message);
+              notify = false;
             }
             
             if (notify) {
