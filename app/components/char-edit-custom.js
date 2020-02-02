@@ -10,9 +10,6 @@ export default Component.extend({
   
   onUpdate: function() {
     return { psyche: this.get('char.custom.psyche') };
-  }
-
-  onUpdate: function() {
     return { gift: this.get('char.custom.gift') };
   }
   
