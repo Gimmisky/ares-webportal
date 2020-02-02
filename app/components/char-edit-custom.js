@@ -9,8 +9,11 @@ export default Component.extend({
   },
   
   onUpdate: function() {
-    // Return a hash containing your data.  Character data will be in 'char'.  For example:
-    // 
-    return { motivations: this.get('char.custom.motivations') };
+    return { psyche: this.get('char.custom.psyche') };
   }
+
+  onUpdate: function() {
+    return { gift: this.get('char.custom.gift') };
+  }
+  
 });
