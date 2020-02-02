@@ -9,8 +9,7 @@ export default Component.extend({
   },
   
   onUpdate: function() {
-    return { psyche: this.get('char.custom.psyche') };
-    return { gift: this.get('char.custom.gift') };
+    return { psyche: this.get('char.custom.psyche'), gift: this.get('char.custom.gift') };
   }
   
 });
