@@ -7,7 +7,7 @@
       <h2>Game Status <i class="fa fa-video" aria-hidden="true"></i></h2>
   </div>
   {{#if (not socketConnected)}}
-    <div class="alert alert-warning">The website is not receiving live updates from the game.  Try reloading the page.</div>
+    <div class="alert alert-warning">The website is not receiving live updates from the game.  If the problem persists, try reloading the page.</div>
   {{/if}}
 
   {{#if versionWarning}}
@@ -72,10 +72,10 @@
    </div>
    {{#each model.recent_scenes as |scene|}}
    <p><LinkTo @route="scene" @model={{scene.id}}>{{scene.icdate}} - {{scene.title}}</LinkTo>
-       <SceneTypeTag @scene={{scene}} />
        {{#if scene.content_warning}}
        <ContentWarningTag @warning={{scene.content_warning}} @position="top-left" />
        {{/if}}
+       <SceneTypeTag @scene={{scene}} />
        <br></p>
    {{/each}}
    <br>
