@@ -1,4 +1,4 @@
-{{title model.char.name}}
+{{page-title model.char.name}}
 
 <h1>{{model.char.name_and_nickname}}</h1>
 
@@ -42,7 +42,7 @@
  
  <div class="profile-tab">
  
-<ProfileLogs @scenes={{model.scenes}} @sceneTypes={{model.sceneTypes}} @char={{model.char}} />
+<ProfileLogs @scenes={{model.scenes}} @sceneTypes={{model.sceneOptions.scene_types}} @char={{model.char}} />
    
 </div>
    
@@ -66,6 +66,9 @@
         
         {{#if model.char.last_profile_version}}
             <LinkTo @route="char-source" @models={{array model.char.id model.char.last_profile_version}} class="btn btn-default">Source/History</LinkTo>
+        {{/if}}
+        {{#if model.char.can_approve}}
+          <LinkTo @route="chargen-char" @model={{model.char.id}} class="btn btn-default">Chargen</LinkTo>
         {{/if}}
         {{#if model.char.show_notes}}
           <LinkTo @route="notes" @model={{model.char.name}} class="btn btn-default">Notes</LinkTo>

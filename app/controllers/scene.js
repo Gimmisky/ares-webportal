@@ -7,7 +7,7 @@ export default Controller.extend(AuthenticatedController, {
     gameApi: service(),
     confirmDelete: false,
     
-    pageTitle: computed(function() {
+    pageTitle: computed('model.title', function() {
         return `${this.get('model.icdate')} - ${this.get('model.title')}`
     }),
     
@@ -24,19 +24,6 @@ export default Controller.extend(AuthenticatedController, {
                     return;
                 }
                 this.send('reloadModel');
-            });
-        },
-        
-        delete() {
-            let api = this.gameApi;
-            this.set('confirmDelete', false);
-            api.requestOne('deleteScene', { id: this.get('model.id')})
-            .then( (response) => {
-                if (response.error) {
-                    return;
-                }
-                this.transitionToRoute('scenes');
-                this.flashMessages.success('Scene deleted!');
             });
         },
         

@@ -1,58 +1,136 @@
-{{title 'Account Settings'}}
+{{page-title 'Account Settings'}}
 
 <h1>Account Settings</h1>
 
 <h2>Player Handle</h2>
 
-{{#if model.handle}}
-<p>Your character is linked to the handle <b>{{model.handle}}</b>.  Visit <a href="http://arescentral.aresmush.com" target="_blank" rel="nofollow noopener">AresCentral</a> to manage your handle preferences.</p>
-{{else}}
+  <p>AresMUSH player handles provide--at your discretion--a consistent player identity across Ares games. They also enable cross-game features like a friends list and synchronized account preferences. Learn more about player handles on <a href="https://aresmush.com/handles" target="_blank" rel="nofollow noopener">aresmush.com</a></p>
 
-<p>AresMUSH player handles provide--at your discretion--a consistent player identity across Ares games. They also enable cross-game features like a friends list and synchronized account preferences.</p>
 
-<p>Learn more about player handles on <a href="https://aresmush.com/handles" target="_blank" rel="nofollow noopener">aresmush.com</a></p>
+<a data-toggle="collapse" href="#handle" class="btn btn-default btn-collapse">Manage Handle</a>
+<div id="handle" class="panel-collapse collapse">
 
-<p>To set up a player handle:</p>
+   <div class="panel panel-default">
+      <div class="panel-body">
 
-<ol>
-  <li>Visit <a href="http://arescentral.aresmush.com" target="_blank" rel="nofollow noopener">AresCentral</a>  and register your handle account.</li>
-  <li>Go to 'My Account -> Manage Characters'.</li>
-  <li>Click 'Get A New Link Code' and copy the code it gives you.</li>
-  <li>Enter the handle name and the code below and click 'Link to Handle'.</li>
-</ol>
+        {{#if model.handle}}
+        <p>Your character is linked to the handle <b>{{model.handle}}</b>.  Visit <a href="http://arescentral.aresmush.com" target="_blank" rel="nofollow noopener">AresCentral</a> to manage your handle preferences.</p>
+        {{else}}
 
-<div class="panel panel-default">
-    <div class="panel-body">
 
-        <FlashMessages />
-        
-        <p><Input @type="text" @id="handleName" placeholder="Handle Name" @enter={{action "linkHandle"}} @value={{handleName}} /></p>
-        <p><Input @type="text" placeholder="Link Code" @enter={{action "linkHandle"}} @id="linkCode" @value={{linkCode}} /></p>
-        
-        <button {{action "linkHandle"}} class="btn btn-primary">Link to Handle</button>
-        
-    </div>
-</div>
+        <p>To set up a player handle:</p>
+
+        <ol>
+          <li>Visit <a href="http://arescentral.aresmush.com" target="_blank" rel="nofollow noopener">AresCentral</a>  and register your handle account.</li>
+          <li>At AresCentral, go to 'My Account -> Manage Characters'.</li>
+          <li>Click 'Get A New Link Code' and copy the code it gives you.</li>
+          <li>Enter the handle name and the code below and click 'Link to Handle'.</li>
+        </ol>
   
-{{/if}}
-
-
-<h2>Change Password</h2>
-
-<p>Enter your current password and desired new password and click 'Change Password'.</p>
-
-<div class="panel panel-default">
-    <div class="panel-body">
-
-        <FlashMessages />
+          <FlashMessages />
         
-        <p><Input @type="password" @id="password" placeholder="Current Password" @enter={{action "changePassword"}} @value={{currentPassword}} /></p>
-        <p><Input @type="password" placeholder="Password" @enter={{action "changePassword"}} @id="newPassword" @value={{newPassword}} /></p>
-        <p><Input @type="password" placeholder="Confirm Password" @enter={{action "changePassword"}} @id="confirmPassword" @value={{confirmPassword}} /></p>
+          <p><Input @type="text" @id="handleName" placeholder="Handle Name" @value={{handleName}} /></p>
+          <p><Input @type="text" placeholder="Link Code" @id="linkCode" @value={{linkCode}} /></p>
+          <p><Input @type="password" placeholder="Confirm Password" @id="confirmPasswordHandle" @value={{confirmPasswordHandle}} /></p>
         
-        <button {{action "changePassword"}} class="btn btn-primary">Change Password</button>
+          <button {{action "linkHandle"}} class="btn btn-primary">Link to Handle</button>
+        
+        {{/if}}
+        
+      </div>
+  </div>
+  
+
+</div>
+
+<h2>Password</h2>
+
+<p>You can change the password for this character. This is used to log in to both the game and the web portal.</p>
+
+<a data-toggle="collapse" href="#password" class="btn btn-default btn-collapse">Change Password</a>
+<div id="password" class="panel-collapse collapse">
+
+  <div class="panel panel-default">
+      <div class="panel-body">
+
+          <FlashMessages />
+        
+          <p><Input @type="password" @id="password" placeholder="Current Password" @value={{currentPassword}} /></p>
+          <p><Input @type="password" placeholder="Password" @id="newPassword" @value={{newPassword}} /></p>
+          <p><Input @type="password" placeholder="Confirm New Password"  @id="confirmPassword" @value={{confirmPassword}} /></p>
+        
+          <button {{action "changePassword"}} class="btn btn-primary">Change Password</button>
                 
-    </div>
+      </div>
+  </div>
+</div>
+
+
+<h2>Account Settings</h2>
+
+<p>You can change several other account settings here.</p>
+
+<a data-toggle="collapse" href="#settings" class="btn btn-default btn-collapse">Manage Settings</a>
+<div id="settings" class="panel-collapse collapse">
+
+  <div class="panel panel-default">
+      <div class="panel-body">
+
+          <FlashMessages />
+        
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              Name
+            </div>
+          
+            <div class="panel-body">
+              {{#if isApproved}}
+              <p>You are already approved. Submit a <LinkTo @route="jobs">request</LinkTo> to ask for a name change.</p>
+              {{else}}
+              <p><Input @id="name" placeholder="Name" @value={{model.name}} /></p>
+              {{/if}}
+              
+            </div>
+          </div>
+        
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              Email <LinkTo @route="help-topic" @model="email" @target="_blank"><i class="fas fa-info-circle"></i></LinkTo>
+            </div>
+          
+            <div class="panel-body">
+                        
+              <p><Input placeholder="Email" @id="email" @value={{model.email}} /></p>
+            </div>
+          </div>
+            
+          
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                Timezone <LinkTo @route="help-topic" @model="timezone" @target="_blank"><i class="fas fa-info-circle"></i></LinkTo>
+              </div>
+    
+              <div class="panel-body">
+          
+                {{#if model.handle}}
+                <p>Your timezone is {{model.timezone}}. Visit <a href="http://arescentral.aresmush.com" target="_blank" rel="nofollow noopener">AresCentral</a> to manage your timezone, which will apply to all characters linked to your handle.</p>
+                {{else}}
+                
+                <PowerSelect @selected={{model.timezone}}  @options={{model.timezones}} @searchEnabled=true @onChange={{action "timezoneChanged"}} as |tz|>
+                   {{tz}}
+                 </PowerSelect>
+                                             
+                {{/if}}
+              </div>
+            </div>
+          
+          <p><Input @type="password" @id="passwordEmail" placeholder="Confirm Password" @value={{confirmPasswordSettings}} /></p>
+          <button {{action "changeSettings"}} class="btn btn-primary">Save Settings</button>
+             
+          <FlashMessages />
+                
+      </div>
+  </div>
 </div>
 
 {{outlet}}

@@ -1,5 +1,5 @@
 import EmberRouter from '@ember/routing/router';
-import config from './config/environment';
+import config from 'ares-webportal/config/environment';
 import setupCustomRoutes from 'ares-webportal/custom-routes';
 
 export default class Router extends EmberRouter {
@@ -30,7 +30,8 @@ Router.map(function() {
   this.route('char-edit', { path: '/char/:id/edit' });
   this.route('char-source', { path: '/char/:char_id/source/:version_id' });
   this.route('chargen');
-  this.route('chargen-review');
+  this.route('chargen-char', { path: '/chargen/:char_id'});
+  this.route('chargen-review', { path: '/chargen-review/:char_id'});
   this.route('chat');
   this.route('channels-manage');
   this.route('channel-create');
@@ -70,6 +71,7 @@ Router.map(function() {
   this.route('help');
   this.route('help-topic', { path: '/help/:topic' });
   this.route('help-override', { path: '/help/:topic/override' });
+  this.route('idle');
   this.route('jobs');
   this.route('job', { path: '/job/:id' });
   this.route('job-create');
@@ -100,6 +102,7 @@ Router.map(function() {
   this.route('plugins-edit');
   this.route('recent-changes');
   this.route('register');
+  this.route('roles');
   this.route('roster');
   this.route('roster-claim', { path: '/roster/claim/:id' });
   this.route('routes');
