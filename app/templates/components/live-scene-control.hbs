@@ -113,6 +113,12 @@
             {{/if}}
     {{/each}}
 
+
+     {{#if commandResponse}}
+       <div class="scene-command">{{commandResponse}}</div>
+     {{/if}}
+     
+     
     </div>
 
     {{#if sceneAlerts}}
@@ -136,14 +142,12 @@
             <PoseOrder @poseOrder={{scene.pose_order}} @playerName={{playerName}} />
              
              <MarkdownEditor @text={{scenePose}} @rows={{6}} @class="scene-pose-box" @onEnter={{action "addPose" poseType.id}} />
-
-             
            {{/if}}
    
 
        <div class="scene-controls">
          <div class="col col-sm-6 col-xs-12 scene-controls-right">
-             {{#if (not scene.completed)}}                
+             {{#if (and (not scene.completed) (not scene.reload_required))}} 
 
              <div class="pose-buttons">
                  <button {{action 'addPose' poseType.id}} class="btn btn-primary">Add {{poseType.title}}</button>
@@ -152,7 +156,7 @@
                  {{#if txtExtraInstalled}}
                    <LiveSceneTxt @scenePose={{scenePose}} @scene={{scene}} />
                  {{/if}}
-                
+                 
              <LiveSceneCustomScenepose @scenePose={{scenePose}} @scene={{scene}} />
              </div>
                 
@@ -194,7 +198,12 @@
                              
                              {{#if cookiesExtraInstalled}}
                                <LiveSceneCookies @scene={{scene}} />
-                             {{/if}}                             
+                             {{/if}}      
+                             
+                             {{#if rpgExtraInstalled}}
+                               <RpgLiveScene @scene={{scene}} />
+                             {{/if}}
+                                                    
                           
                              <LiveSceneCustomPlay @scene={{scene}} @abilities={{abilities}} />
                           

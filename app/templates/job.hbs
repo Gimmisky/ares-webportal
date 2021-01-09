@@ -36,12 +36,15 @@
                 <span class="btn btn-default" href="#">Job Menu <span class="caret"></span></span> </a>
                 <ul class="dropdown-menu">
                 <li><a href="#" {{action 'closeJob'}}>Close Job</a></li>
+                {{#if model.job.is_job_admin}}
+                  <li><LinkTo @route="job-edit" @model={{model.job.id}}>Edit Job</LinkTo></li>
+                {{/if}}
                 {{#if model.job.fs3_enabled}}
-                <li><a href="#" {{action (mut selectSkillRoll) true}}>Add Ability Roll</a></li>
+                  <li><a href="#" {{action (mut selectSkillRoll) true}}>Add Ability Roll</a></li>
                 {{/if}}
                 {{#if model.job.is_approval_job}}
-                <li><LinkTo @route="app-review" @model={{model.job.author.id}}>App Review for {{model.job.author.name}}</LinkTo></li>
-                <li><LinkTo @route="char" @model={{model.job.author.name}}>Profile for {{model.job.author.name}}</LinkTo></li>
+                  <li><LinkTo @route="app-review" @model={{model.job.author.id}}>App Review for {{model.job.author.name}}</LinkTo></li>
+                  <li><LinkTo @route="char" @model={{model.job.author.name}}>Profile for {{model.job.author.name}}</LinkTo></li>
                 {{/if}}
                 </ul>
               </li>
@@ -231,6 +234,13 @@
     </div>
         <MarkdownEditor @text={{reply}} />
     </div>
+    
+    {{#if model.job.responses}}
+    <b>Pre-Made Responses:</b>
+     <PowerSelect @selected='' @options={{model.job.responses}} @searchEnabled=true @searchField="name" @onChange={{action "responseSelected"}} as |resp|>
+      {{resp.name}}
+    </PowerSelect>
+    {{/if}}
 </div>
 
 
@@ -244,6 +254,9 @@
               <span class="btn btn-default" href="#">Job Menu <span class="caret"></span></span> </a>
               <ul class="dropdown-menu">
               <li><a href="#" {{action 'closeJob'}}>Close Job</a></li>
+              {{#if model.job.is_job_admin}}
+                <li><LinkTo @route="job-edit" @model={{model.job.id}}>Edit Job</LinkTo></li>
+              {{/if}}
               {{#if model.job.is_approval_job}}
                 <li><LinkTo @route="app-review" @model={{model.job.author.id}}>App Review for {{model.job.author.name}}</LinkTo></li>
                 <li><LinkTo @route="char" @model={{model.job.author.name}}>Profile for {{model.job.author.name}}</LinkTo></li>
