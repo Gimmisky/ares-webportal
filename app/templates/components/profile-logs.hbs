@@ -1,6 +1,9 @@
 <ul class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#scenesindex">+</a></li>
     <li><a data-toggle="tab" href="#scenelist">Scenes</a></li>
+  {{#if char.seeds}}
+    <li><a data-toggle="tab" href="#scenesseeds">Seeds</a></li>
+  {{/if}}
 </ul>
 
 
@@ -15,5 +18,15 @@
         <SceneList @scenes={{scenes.scenes}} @pages={{scenes.pages}} @sceneTypes={{sceneTypes}} @filter={{filter}} @page={{page}} @filterChanged={{action "filterChanged"}} @goToPage={{action "goToPage"}} />
       
     </div>
+
+    {{#if char.seeds}}
+    <div id="scenesseeds" class="tab-pane fade ">
+        {{#each char.seeds as |seed|}}
+        <h3>{{{ansi-format text=seed.date}}} - {{{ansi-format text=seed.name}}}</h3>
+          {{{ansi-format text=seed.desc}}}
+        {{/each}}
+        <blockquote>Only the most recent 10 seeds are shown. For older seeds, check your `seeds` list on-game.</blockquote>
+    </div>
+    {{/if}}
     
 </div>
