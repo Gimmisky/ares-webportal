@@ -76,7 +76,9 @@
        <ContentWarningTag @warning={{scene.content_warning}} @position="top-left" />
        {{/if}}
        <SceneTypeTag @scene={{scene}} />
-       <br></p>
+       <br>
+       <span class="sidebar-scene-summary">{{scene.summary}}</span>
+       </p>
    {{/each}}
    <br>
    <p><LinkTo @route="scenes">All Scenes</LinkTo></p>
