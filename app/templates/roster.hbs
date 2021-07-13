@@ -56,9 +56,9 @@
              
           <div>  
              <LinkTo @route="char" @model={{char.name}} class="btn btn-default">Profile</LinkTo>
-             {{#if (not char.app_pending)}}
+
              <LinkTo @route="roster-claim" @model={{char.id}} class="btn btn-primary">Claim</LinkTo>
-             {{/if}}
+
            </div>
              
         </div>
