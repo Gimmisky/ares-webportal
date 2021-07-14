@@ -43,6 +43,10 @@
         <LinkTo @route="char" @model={{currentUser.id}}>
           <TooltipIcon @position="left" @message="View" @icon="fa fa-eye" />
         </LinkTo>
+      {{else if (eq notification.type 'seeds')}}
+        <LinkTo @route="char" @model={{currentUser.id}}>
+          <TooltipIcon @position="left" @message="View" @icon="fa fa-eye" />
+        </LinkTo>
       {{/if}}
       
       {{#if notification.is_unread}}
